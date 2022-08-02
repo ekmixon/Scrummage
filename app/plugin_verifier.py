@@ -26,11 +26,7 @@ class Plugin_Verifier:
                             In_Dict = True
                             Result = Plugin_Object.Load_Configuration()
 
-                    if In_Dict:
-                        return Result
-
-                    else:
-                        return True
+                    return Result if In_Dict else True
 
                 if Load_Config_Only:
 
@@ -52,7 +48,7 @@ class Plugin_Verifier:
 
                         if "Custom_Search" in Dict_Item:
                             Search_Option = Dict_Item["Custom_Search"]
-                            
+
                         else:
                             Search_Option = "Search"
 
@@ -66,12 +62,7 @@ class Plugin_Verifier:
 
                         Result = Output_API_Checker(Plugin_Object, self.plugin_name)
 
-                        if Result:
-                            return True
-
-                        else:
-                            return False
-
+                        return bool(Result)
                     else:
                         print(f"{Common.Date()} - Plugin Verifier - Invalid plugin provided.")
 
@@ -95,7 +86,7 @@ class Plugin_Verifier:
 
                         if "Custom_Search" in Dict_Item:
                             Search_Option = Dict_Item["Custom_Search"]
-                            
+
                         else:
                             Search_Option = "Search"
 
@@ -120,6 +111,6 @@ class Plugin_Verifier:
 
             except Exception as e:
                 print(f"{Common.Date()} - Plugin Verifier - {str(e)}.")
-                
+
         except Exception as e:
             print(f"{Common.Date()} - Plugin Verifier - {str(e)}.")

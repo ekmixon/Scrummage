@@ -77,10 +77,7 @@ if __name__ == "__main__":
                 cursor = Connection.cursor()
                 PSQL_Select_Query = 'SELECT * FROM tasks WHERE task_id = %s;'
                 cursor.execute(PSQL_Select_Query, (Task_ID,))
-                result = cursor.fetchone()
-
-                if result:
-
+                if result := cursor.fetchone():
                     if result[1] == "[IDENTITIES_DATABASE]":
                         ID_DB_Search_Type = Valid_Plugins[result[2]]["Organisation_Presets"]
 

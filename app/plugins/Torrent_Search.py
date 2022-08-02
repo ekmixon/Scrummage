@@ -34,19 +34,24 @@ class Plugin_Search:
                 Results = Torrents.search(Query)
                 JSON_Response = Common.JSON_Handler(Results).Dump_JSON()
                 Main_File = General.Main_File_Create(Directory, self.Plugin_Name, JSON_Response, Query, self.The_File_Extensions["Main"])
-                Current_Step = 0
                 Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
 
                 if 'items' in Results and len(Results['items']) > 0:
-                
+                            
+                    Current_Step = 0
                     for Search_Result in Results['items']:
                         Result_Title = f"{self.Plugin_Name} | " + Search_Result["name"]
                         Result_URL = Search_Result["link"]
 
                         if Result_URL not in Cached_Data and Result_URL not in Data_to_Cache and Current_Step < int(self.Limit):
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, JSON_Response, Result_Title, self.The_File_Extensions["Query"])
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                self.Plugin_Name,
+                                JSON_Response,
+                                Result_Title,
+                                self.The_File_Extensions["Query"],
+                            ):
                                 Output_Connections.Output([Main_File, Output_file], Result_URL, General.Get_Title(Result_URL), self.Plugin_Name.lower())
                                 Data_to_Cache.append(Result_URL)
 

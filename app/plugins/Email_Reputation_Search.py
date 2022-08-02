@@ -16,9 +16,9 @@ class Plugin_Search:
 
     def Load_Configuration(self):
         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Loading configuration data.")
-        Result = Common.Configuration(Input=True).Load_Configuration(Object=self.Concat_Plugin_Name, Details_to_Load=["api_key"])
-
-        if Result:
+        if Result := Common.Configuration(Input=True).Load_Configuration(
+            Object=self.Concat_Plugin_Name, Details_to_Load=["api_key"]
+        ):
             return Result
 
         else:
@@ -57,9 +57,14 @@ class Plugin_Search:
                             Filtered_Response = Responses["Filtered"]
                             Title = f"{self.Plugin_Name} | {Query}"
                             Main_File = General.Main_File_Create(Directory, self.Concat_Plugin_Name, JSON_Output_Response, Query, self.The_File_Extensions["Main"])
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Concat_Plugin_Name, Filtered_Response, Title, self.The_File_Extensions["Query"])
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                self.Concat_Plugin_Name,
+                                Filtered_Response,
+                                Title,
+                                self.The_File_Extensions["Query"],
+                            ):
                                 Output_Connections.Output([Main_File, Output_file], Link, Title, self.Concat_Plugin_Name)
                                 Data_to_Cache.append(Link)
 

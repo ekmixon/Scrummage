@@ -45,9 +45,14 @@ class Plugin_Search:
                                 Response = Responses["Filtered"]
 
                                 if Main_URL not in Cached_Data and Main_URL not in Data_to_Cache:
-                                    Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, f"edgar-american-business-search-{Query.lower()}", self.The_File_Extensions["Query"])
-
-                                    if Output_file:
+                                    if Output_file := General.Create_Query_Results_Output_File(
+                                        Directory,
+                                        Query,
+                                        self.Plugin_Name,
+                                        Response,
+                                        f"edgar-american-business-search-{Query.lower()}",
+                                        self.The_File_Extensions["Query"],
+                                    ):
                                         Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name)
                                         Output_Connections.Output([Output_file], Main_URL, f"American Business Number (EDGAR) {Query}", self.Concat_Plugin_Name)
                                         Data_to_Cache.append(Main_URL)
@@ -68,25 +73,32 @@ class Plugin_Search:
                         Filtered_Response = Responses["Filtered"]
 
                         try:
-                            ACN = Common.Regex_Handler(Query, Type="Company_Name")
-
-                            if ACN:
+                            if ACN := Common.Regex_Handler(
+                                Query, Type="Company_Name"
+                            ):
                                 Main_File = General.Main_File_Create(Directory, self.Plugin_Name, Filtered_Response, Query, self.The_File_Extensions["Main"])
-                                Current_Step = 0
-                                CIKs_Regex = Common.Regex_Handler(Response, Custom_Regex=r"(\d{10})\<\/a\>\<\/td\>\s+\<td\sscope\=\"row\"\>(.*\S.*)\<\/td\>", Findall=True)
-
-                                if CIKs_Regex:
+                                if CIKs_Regex := Common.Regex_Handler(
+                                    Response,
+                                    Custom_Regex=r"(\d{10})\<\/a\>\<\/td\>\s+\<td\sscope\=\"row\"\>(.*\S.*)\<\/td\>",
+                                    Findall=True,
+                                ):
                                     Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name)
 
+                                    Current_Step = 0
                                     for CIK_URL, ACN in CIKs_Regex:
                                         Full_CIK_URL = f'https://www.{self.Domain}/cgi-bin/browse-edgar?action=getcompany&CIK={CIK_URL}&owner=exclude&count=40&hidefilings=0'
 
                                         if Full_CIK_URL not in Cached_Data and Full_CIK_URL not in Data_to_Cache and Current_Step < int(self.Limit):
                                             Current_Responses = Common.Request_Handler(Full_CIK_URL, Filter=True, Host=f"https://www.{self.Domain}")
                                             Current_Response = Current_Responses["Filtered"]
-                                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, str(Current_Response), ACN.replace(' ', '-'), self.The_File_Extensions["Query"])
-
-                                            if Output_file:
+                                            if Output_file := General.Create_Query_Results_Output_File(
+                                                Directory,
+                                                Query,
+                                                self.Plugin_Name,
+                                                str(Current_Response),
+                                                ACN.replace(' ', '-'),
+                                                self.The_File_Extensions["Query"],
+                                            ):
                                                 Output_Connections.Output([Main_File, Output_file], Full_CIK_URL, f"American Business Number (EDGAR) {CIK_URL} for Query {Query}", self.Concat_Plugin_Name)
                                                 Data_to_Cache.append(Full_CIK_URL)
 

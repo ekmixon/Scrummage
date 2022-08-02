@@ -17,7 +17,7 @@ class Plugin_Search:
         self.Plugin_Name = "Domain Fuzzer"
         self.Concat_Plugin_Name = "domainfuzzer"
         self.The_File_Extensions = {"Main": ".csv", "Main_Alternative": ".json", "Query": ".html"}
-        self.Logging_Plugin_Name = self.Plugin_Name + " Search"
+        self.Logging_Plugin_Name = f"{self.Plugin_Name} Search"
 
     def Query_URL(self, URL, Extension):
 
@@ -27,18 +27,20 @@ class Plugin_Search:
             logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Successfully resolved hostname {Query} to an IP address {Response}.")
 
             if Response:
-                Cache = Query + ":" + Response
+                Cache = f"{Query}:{Response}"
 
                 if Cache not in self.Cached_Data and Cache not in self.Data_to_Cache:
-                    HTTP_Web_Host = 'http://' + Query
+                    HTTP_Web_Host = f'http://{Query}'
                     Web_Host = HTTP_Web_Host
                     Response_Verdict = Common.Request_Handler(Web_Host, Risky_Plugin=True, Certificate_Verification=False)
 
                     if not Response_Verdict:
                         HTTPS_Web_Host = Web_Host.replace("http://", "https://")
-                        Response_Verdict = Common.Request_Handler(Web_Host, Risky_Plugin=True, Certificate_Verification=False)
-                        
-                        if Response_Verdict:
+                        if Response_Verdict := Common.Request_Handler(
+                            Web_Host,
+                            Risky_Plugin=True,
+                            Certificate_Verification=False,
+                        ):
                             Web_Host = HTTPS_Web_Host
 
                         else:

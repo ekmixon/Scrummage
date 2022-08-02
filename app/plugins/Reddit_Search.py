@@ -15,9 +15,17 @@ class Plugin_Search:
 
     def Load_Configuration(self):
         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Loading configuration data.")
-        Result = Common.Configuration(Input=True).Load_Configuration(Object=self.Plugin_Name.lower(), Details_to_Load=["client_id", "client_secret", "user_agent", "username", "password", "subreddits"])
-
-        if Result:
+        if Result := Common.Configuration(Input=True).Load_Configuration(
+            Object=self.Plugin_Name.lower(),
+            Details_to_Load=[
+                "client_id",
+                "client_secret",
+                "user_agent",
+                "username",
+                "password",
+                "subreddits",
+            ],
+        ):
             return Result
 
         else:
@@ -45,8 +53,12 @@ class Plugin_Search:
                     Reddit_Connection = praw.Reddit(client_id=Reddit_Details[0], client_secret=Reddit_Details[1], user_agent=Reddit_Details[2], username=Reddit_Details[3], password=Reddit_Details[4])
                     All_Subreddits = Reddit_Connection.subreddit(Reddit_Details[5])
 
-                    for Subreddit in All_Subreddits.search(Query, limit=self.Limit):
-                        Results.append(Subreddit.url)
+                    Results.extend(
+                        Subreddit.url
+                        for Subreddit in All_Subreddits.search(
+                            Query, limit=self.Limit
+                        )
+                    )
 
                 except:
                     logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to get results. Are you connected to the internet?")
@@ -60,9 +72,14 @@ class Plugin_Search:
                         try:
                             Reddit_Responses = Common.Request_Handler(Result, Application_JSON_CT=True, Accept_XML=True, Accept_Language_EN_US=True, Filter=True, Host=f"https://www.{self.Domain}")
                             Reddit_Response = Reddit_Responses["Filtered"]
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Reddit_Response, Result, self.The_File_Extension)
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                self.Plugin_Name,
+                                Reddit_Response,
+                                Result,
+                                self.The_File_Extension,
+                            ):
                                 Output_Connections.Output([Output_file], Result, General.Get_Title(Result), self.Plugin_Name.lower())
                                 Data_to_Cache.append(Result)
 

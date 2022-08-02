@@ -31,7 +31,7 @@ class Plugin_Search:
                 if self.Type == "Email":
 
                     if Common.Regex_Handler(Query, Type=self.Type):
-                        Local_Plugin_Name = self.Plugin_Name + " " + self.Type
+                        Local_Plugin_Name = f"{self.Plugin_Name} {self.Type}"
                         URL = f"https://www.{self.Domain}/searchApi/v2/email/report/?email={Query}"
                         Response = Common.Request_Handler(URL)
                         Search_Response = Common.Request_Handler(URL)
@@ -64,7 +64,7 @@ class Plugin_Search:
                 elif self.Type == "Domain":
 
                     if Common.Regex_Handler(Query, Type=self.Type):
-                        Local_Plugin_Name = self.Plugin_Name + " " + self.Type
+                        Local_Plugin_Name = f"{self.Plugin_Name} {self.Type}"
                         URL = f"https://www.{self.Domain}/searchApi/v2/self.Domain/report/?self.Domain={Query}"
                         Response = Common.Request_Handler(URL)
                         JSON_Object = Common.JSON_Handler(Response)
@@ -79,7 +79,7 @@ class Plugin_Search:
                             Main_File = General.Main_File_Create(Directory, Local_Plugin_Name, JSON_Output_Response, Query, self.The_File_Extensions["Main"])
                             Output_file = General.Create_Query_Results_Output_File(Directory, Query, Local_Plugin_Name, Permalink_Response, Query, self.The_File_Extensions["Query"])
                             Output_Connections = General.Connections(Query, Local_Plugin_Name, self.Domain, "Domain Information", self.Task_ID, Local_Plugin_Name.lower())
-                            
+
                             if Output_file:
                                 Output_Connections.Output([Main_File, Output_file], Permalink, Title, self.Plugin_Name.lower())
                                 Data_to_Cache.append(URL)
@@ -96,7 +96,7 @@ class Plugin_Search:
                 elif self.Type == "IP Address":
 
                     if Common.Regex_Handler(Query, Type="IP"):
-                        Local_Plugin_Name = self.Plugin_Name + " " + self.Type
+                        Local_Plugin_Name = f"{self.Plugin_Name} {self.Type}"
                         URL = f"https://www.{self.Domain}/searchApi/v2/ip/report/?ip={Query}"
                         Response = Common.Request_Handler(URL)
                         JSON_Object = Common.JSON_Handler(Response)
@@ -111,7 +111,7 @@ class Plugin_Search:
                             Main_File = General.Main_File_Create(Directory, Local_Plugin_Name, JSON_Output_Response, Query, self.The_File_Extensions["Main"])
                             Output_file = General.Create_Query_Results_Output_File(Directory, Query, Local_Plugin_Name, Permalink_Response, Query, self.The_File_Extensions["Query"])
                             Output_Connections = General.Connections(Query, Local_Plugin_Name, self.Domain, "Domain Information", self.Task_ID, Local_Plugin_Name.lower())
-                            
+
                             if Output_file:
                                 Output_Connections.Output([Main_File, Output_file], Permalink, Title, self.Plugin_Name.lower())
                                 Data_to_Cache.append(URL)
@@ -126,7 +126,7 @@ class Plugin_Search:
                         logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to match query to IP address regular expression.")
 
                 elif self.Type == "AV":
-                    Local_Plugin_Name = self.Plugin_Name + " " + self.Type
+                    Local_Plugin_Name = f"{self.Plugin_Name} {self.Type}"
                     URL = f"https://www.{self.Domain}/searchApi/v2/antivirus/report/?antivirus={Query}"
                     Response = Common.Request_Handler(URL)
                     JSON_Object = Common.JSON_Handler(Response)
@@ -141,7 +141,7 @@ class Plugin_Search:
                         Main_File = General.Main_File_Create(Directory, Local_Plugin_Name, JSON_Output_Response, Query, self.The_File_Extensions["Main"])
                         Output_file = General.Create_Query_Results_Output_File(Directory, Query, Local_Plugin_Name, Permalink_Response, Query, self.The_File_Extensions["Query"])
                         Output_Connections = General.Connections(Query, Local_Plugin_Name, self.Domain, "Malware", self.Task_ID, Local_Plugin_Name.lower())
-                        
+
                         if Output_file:
                             Output_Connections.Output([Main_File, Output_file], Permalink, Title, self.Plugin_Name.lower())
                             Data_to_Cache.append(URL)
@@ -153,7 +153,7 @@ class Plugin_Search:
                         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Provided query returned no results.")
 
                 elif self.Type == "Virus Report":
-                    Local_Plugin_Name = self.Plugin_Name + " " + self.Type
+                    Local_Plugin_Name = f"{self.Plugin_Name} {self.Type}"
                     URL = f"https://www.{self.Domain}/searchApi/v2/file/report/?resource={Query}"
                     Response = Common.Request_Handler(URL)
                     JSON_Object = Common.JSON_Handler(Response)
@@ -168,7 +168,7 @@ class Plugin_Search:
                         Main_File = General.Main_File_Create(Directory, Local_Plugin_Name, JSON_Output_Response, Query, self.The_File_Extensions["Main"])
                         Output_file = General.Create_Query_Results_Output_File(Directory, Query, Local_Plugin_Name, Permalink_Response, Query, self.The_File_Extensions["Query"])
                         Output_Connections = General.Connections(Query, Local_Plugin_Name, self.Domain, "Virus Report", self.Task_ID, Local_Plugin_Name.lower())
-                        
+
                         if Output_file:
                             Output_Connections.Output([Main_File, Output_file], Permalink, Title, self.Plugin_Name.lower())
                             Data_to_Cache.append(URL)

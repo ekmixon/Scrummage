@@ -16,9 +16,15 @@ class Plugin_Search:
 
     def Load_Configuration(self):
         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Loading configuration data.")
-        Result = Common.Configuration(Input=True).Load_Configuration(Object=self.Plugin_Name.lower(), Details_to_Load=["cx", "application_name", "application_version", "developer_key"])
-
-        if Result:
+        if Result := Common.Configuration(Input=True).Load_Configuration(
+            Object=self.Plugin_Name.lower(),
+            Details_to_Load=[
+                "cx",
+                "application_name",
+                "application_version",
+                "developer_key",
+            ],
+        ):
             return Result
 
         else:
@@ -71,7 +77,7 @@ class Plugin_Search:
                     JSON_Object = Common.JSON_Handler(CSE_Response)
                     CSE_JSON_Output_Response = JSON_Object.Dump_JSON()
                     CSE_JSON_Response = JSON_Object.To_JSON_Loads()
-                    Output_Name = f"{Query}-{str(Current_Start)}"
+                    Output_Name = f"{Query}-{Current_Start}"
                     Main_File = General.Main_File_Create(Directory, self.Plugin_Name, CSE_JSON_Output_Response, Output_Name, self.The_File_Extensions["Main"])
                     Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
 

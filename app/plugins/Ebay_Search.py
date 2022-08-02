@@ -16,9 +16,9 @@ class Plugin_Search:
 
     def Load_Configuration(self):
         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Loading configuration data.")
-        Result = Common.Configuration(Input=True).Load_Configuration(Object=self.Plugin_Name.lower(), Details_to_Load=["access_key"])
-
-        if Result:
+        if Result := Common.Configuration(Input=True).Load_Configuration(
+            Object=self.Plugin_Name.lower(), Details_to_Load=["access_key"]
+        ):
             return Result
 
         else:
@@ -56,15 +56,20 @@ class Plugin_Search:
 
                         for JSON_Line in JSON_Response['searchResult']['item']:
                             Ebay_Item_URL = JSON_Line['viewItemURL']
-                            Title = "Ebay | " + General.Get_Title(Ebay_Item_URL)
+                            Title = f"Ebay | {General.Get_Title(Ebay_Item_URL)}"
 
                             if Ebay_Item_URL not in Cached_Data and Ebay_Item_URL not in Data_to_Cache and Current_Step < int(self.Limit):
                                 Ebay_Item_Regex = Common.Regex_Handler(Ebay_Item_URL, Custom_Regex=r"https\:\/\/www\.ebay\.com\/itm\/([\w\d\-]+)\-\/\d+")
                                 Ebay_Item_Responses = Common.Request_Handler(Ebay_Item_URL, Application_JSON_CT=True, Accept_XML=True, Accept_Language_EN_US=True, Filter=True, Host=f"https://www.{self.Domain}")
                                 Ebay_Item_Response = Ebay_Item_Responses["Filtered"]
-                                Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Ebay_Item_Response, Ebay_Item_Regex.group(1).rstrip("-"), self.The_File_Extensions["Query"])
-
-                                if Output_file:
+                                if Output_file := General.Create_Query_Results_Output_File(
+                                    Directory,
+                                    Query,
+                                    self.Plugin_Name,
+                                    Ebay_Item_Response,
+                                    Ebay_Item_Regex.group(1).rstrip("-"),
+                                    self.The_File_Extensions["Query"],
+                                ):
                                     Output_Connections.Output([Main_File, Output_file], Ebay_Item_URL, Title, self.Plugin_Name.lower())
                                     Data_to_Cache.append(Ebay_Item_URL)
 

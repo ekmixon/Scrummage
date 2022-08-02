@@ -44,9 +44,14 @@ class Plugin_Search:
                     Search_Result_Response = Search_Result_Responses["Filtered"]
 
                     if Result_URL not in Cached_Data and Result_URL not in Data_to_Cache and Current_Step < int(self.Limit):
-                        Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Search_Result_Response, Result_Title, self.The_File_Extensions["Query"])
-
-                        if Output_file:
+                        if Output_file := General.Create_Query_Results_Output_File(
+                            Directory,
+                            Query,
+                            self.Plugin_Name,
+                            Search_Result_Response,
+                            Result_Title,
+                            self.The_File_Extensions["Query"],
+                        ):
                             Output_Connections.Output([Main_File, Output_file], Result_URL, Result_Title, self.Plugin_Name.lower())
                             Data_to_Cache.append(Result_URL)
 

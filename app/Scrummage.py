@@ -49,14 +49,11 @@ if __name__ == '__main__':
         Valid_Plugins = plugin_definitions.Get(Scrummage_Working_Directory)
 
         def No_Limit_Plugins():
-            Plugin_Names = []
-
-            for Key, Value in Valid_Plugins.items():
-
-                if not Value["Requires_Limit"]:
-                    Plugin_Names.append(Key)
-
-            return Plugin_Names
+            return [
+                Key
+                for Key, Value in Valid_Plugins.items()
+                if not Value["Requires_Limit"]
+            ]
 
         try:
             File_Path = os.path.dirname(os.path.realpath('__file__'))
@@ -135,28 +132,10 @@ if __name__ == '__main__':
 
             def authenticate(self):
                 Cursor.execute('SELECT * FROM users WHERE username = %s', (self.username,))
-                User_Details = Cursor.fetchone()
-
-                if User_Details:
-                    Password_Check = check_password_hash(User_Details[2], self.password)
-
-                    if not Password_Check:
-
-                        for char in self.password:
-
-                            if char in Bad_Characters:
-                                Message = f"Failed login attempt for the provided user {str(User_Details[1])} with a password that contains potentially dangerous characters."
-                                app.logger.warning(Message)
-                                Create_Event(Message)
-                                return {"Message": True}
-
-                        Message = f"Failed login attempt for user {str(User_Details[1])}."
-                        app.logger.warning(Message)
-                        Create_Event(Message)
-                        return {"Message": True}
-
-                    else:
-
+                if User_Details := Cursor.fetchone():
+                    if Password_Check := check_password_hash(
+                        User_Details[2], self.password
+                    ):
                         if not User_Details[3]:
                             self.ID = User_Details[0]
                             self.authenticated = True
@@ -171,21 +150,31 @@ if __name__ == '__main__':
                             Create_Event(Message)
                             return {"Message": True}
 
-                else:
+                    else:
+                        for char in self.password:
 
+                            if char in Bad_Characters:
+                                Message = f"Failed login attempt for the provided user {str(User_Details[1])} with a password that contains potentially dangerous characters."
+                                app.logger.warning(Message)
+                                Create_Event(Message)
+                                return {"Message": True}
+
+                        Message = f"Failed login attempt for user {str(User_Details[1])}."
+                        app.logger.warning(Message)
+                        Create_Event(Message)
+                        return {"Message": True}
+
+                else:
                     for char in self.username:
 
                         if char in Bad_Characters:
                             Message = "Failed login attempt for a provided username that contained potentially dangerous characters."
-                            app.logger.warning(Message)
-                            Create_Event(Message)
-                            return {"Message": True}
-
                         else:
                             Message = f"Failed login attempt for user {self.username}."
-                            app.logger.warning(Message)
-                            Create_Event(Message)
-                            return {"Message": True}
+
+                        app.logger.warning(Message)
+                        Create_Event(Message)
+                        return {"Message": True}
 
             def API_registration(self):
 
@@ -241,11 +230,21 @@ if __name__ == '__main__':
 
                 if auth_token == User_Details[5]:
 
-                    if not User_Details[3]:
-                        return {"Token": True, "Admin": User_Details[4], "Username": User_Details[1], "Message": "Token verification successful."}
-
-                    else:
-                        return {"Token": False, "Admin": False, "Username": User_Details[1], "Message": "Token blocked."}
+                    return (
+                        {
+                            "Token": False,
+                            "Admin": False,
+                            "Username": User_Details[1],
+                            "Message": "Token blocked.",
+                        }
+                        if User_Details[3]
+                        else {
+                            "Token": True,
+                            "Admin": User_Details[4],
+                            "Username": User_Details[1],
+                            "Message": "Token verification successful.",
+                        }
+                    )
 
                 else:
                     return {"Token": False, "Admin": False, "Message": "Invalid token."}
@@ -270,12 +269,7 @@ if __name__ == '__main__':
                         Result = plugin_verifier.Plugin_Verifier(API_Key, 0, "", 0).Verify_Plugin(Scrummage_Working_Directory, Load_Config_Only=True)
                         Full_List[API_Key] = Result
 
-                if len(Full_List) > 0:
-                    return Full_List
-
-                else:
-                    return None
-
+                return Full_List or None
             except Exception as e:
                 app.logger.error(e)
 
@@ -297,18 +291,16 @@ if __name__ == '__main__':
                     if session.get('user'):
                         return f(*args, **kwargs)
 
+                    if request.url.endswith("/logout"):
+                        session["next_page"] = url_for("dashboard")
+
+                    elif "/tasks/run" in request.url:
+                        session["next_page"] = url_for("tasks")
+
                     else:
-                    
-                        if request.url.endswith("/logout"):
-                            session["next_page"] = url_for("dashboard")
-                            
-                        elif "/tasks/run" in request.url:
-                            session["next_page"] = url_for("tasks")
-                        
-                        else:
-                            session["next_page"] = request.url
-                        
-                        return redirect(url_for('no_session'))
+                        session["next_page"] = request.url
+
+                    return redirect(url_for('no_session'))
 
                 return wrap
 
@@ -324,15 +316,14 @@ if __name__ == '__main__':
                     if session.get('is_admin'):
                         return f(*args, **kwargs)
 
-                    else:
-                        Redirects = {"result": url_for('results'), "task": url_for('tasks'), "setting": url_for('account'), "account": url_for('account')}
+                    Redirects = {"result": url_for('results'), "task": url_for('tasks'), "setting": url_for('account'), "account": url_for('account')}
 
-                        for Redirect_Key, Redirect_Value in Redirects.items():
-                        
-                            if Redirect_Key in request.url:
-                                return redirect(Redirect_Value)
+                    for Redirect_Key, Redirect_Value in Redirects.items():
 
-                        return redirect(url_for('dashboard'))
+                        if Redirect_Key in request.url:
+                            return redirect(Redirect_Value)
+
+                    return redirect(url_for('dashboard'))
 
                 return wrap
 
@@ -352,13 +343,11 @@ if __name__ == '__main__':
                         if Authentication_Verified["Token"]:
                             return f(*args, **kwargs)
 
+                        if Authentication_Verified["Message"]:
+                            return jsonify({"Error": Authentication_Verified["Message"]}), 500
+
                         else:
-
-                            if Authentication_Verified["Message"]:
-                                return jsonify({"Error": Authentication_Verified["Message"]}), 500
-
-                            else:
-                                return jsonify({"Error": "Unauthorised."}), 500
+                            return jsonify({"Error": "Unauthorised."}), 500
 
                     else:
                         return jsonify({"Error": "Missing Authorization header."}), 500
@@ -396,29 +385,26 @@ if __name__ == '__main__':
 
         @app.errorhandler(CSRFError)
         def handle_csrf_error(e):
-            
-            if session.get('user'):
-                
-                if request.url.endswith("/logout"):
-                    session["next_page"] = url_for("dashboard")
-                    
-                elif "tasks" in request.url:
-                    return redirect(url_for('tasks'))
 
-                elif "results" in request.url:
-                    return redirect(url_for('results'))
+            if not session.get('user'):
+                return redirect(url_for('no_session'))
+            if request.url.endswith("/logout"):
+                session["next_page"] = url_for("dashboard")
 
-                elif "identities" in request.url:
-                    return redirect(url_for('identities'))
-                
-                elif "settings" in request.url:
-                    return redirect(url_for('settings'))
+            elif "tasks" in request.url:
+                return redirect(url_for('tasks'))
 
-                else:
-                    return redirect(url_for('dashboard'))
+            elif "results" in request.url:
+                return redirect(url_for('results'))
+
+            elif "identities" in request.url:
+                return redirect(url_for('identities'))
+
+            elif "settings" in request.url:
+                return redirect(url_for('settings'))
 
             else:
-                return redirect(url_for('no_session'))
+                return redirect(url_for('dashboard'))
 
         @app.errorhandler(400)
         @login_requirement
@@ -481,49 +467,49 @@ if __name__ == '__main__':
                 if request.method == 'POST':
                     time.sleep(1)
 
-                    if 'username' in request.form and 'password' in request.form:
+                    if (
+                        'username' not in request.form
+                        or 'password' not in request.form
+                    ):
+                        return render_template('index.html')
 
-                        for char in request.form['username']:
+                    for char in request.form['username']:
 
-                            if char in Bad_Characters:
-                                return render_template('index.html', error="Login Unsuccessful.")
+                        if char in Bad_Characters:
+                            return render_template('index.html', error="Login Unsuccessful.")
 
-                        Current_User = User(request.form['username'], request.form['password']).authenticate()
+                    Current_User = User(request.form['username'], request.form['password']).authenticate()
 
-                        if Current_User and all(User_Item in Current_User for User_Item in ['Username', 'Status', 'MFA']):
+                    if Current_User and all(User_Item in Current_User for User_Item in ['Username', 'Status', 'MFA']):
 
-                            if Current_User.get('MFA') and Current_User['MFA'] == "true":
-                                session['user_id'] = Current_User.get('ID')
-                                return redirect(url_for('mfa_login'))
-
-                            else:
-                                session['dashboard-refresh'] = 0
-                                session['user_id'] = Current_User.get('ID')
-                                session['user'] = Current_User.get('Username')
-                                session['is_admin'] = Current_User.get('Admin')
-                                session['api_key'] = Current_User.get('API')
-                                session['task_frequency'] = ""
-                                session['task_description'] = ""
-                                session['task_limit'] = 0
-                                session['task_query'] = ""
-                                session['task_id'] = ""
-                                Message = f"Successful login from {Current_User.get('Username')}."
-                                app.logger.warning(Message)
-                                Create_Event(Message)
-
-                                if session.get("next_page"):
-                                    Redirect = session.get("next_page")
-                                    session["next_page"] == ""
-                                    return redirect(Redirect)
-
-                                else:
-                                    return redirect(url_for('dashboard'))
-
-                        elif Current_User and 'Message' in Current_User:
-                            return render_template('index.html', error='Login Unsuccessful.')
+                        if Current_User.get('MFA') and Current_User['MFA'] == "true":
+                            session['user_id'] = Current_User.get('ID')
+                            return redirect(url_for('mfa_login'))
 
                         else:
-                            return render_template('index.html')
+                            session['dashboard-refresh'] = 0
+                            session['user_id'] = Current_User.get('ID')
+                            session['user'] = Current_User.get('Username')
+                            session['is_admin'] = Current_User.get('Admin')
+                            session['api_key'] = Current_User.get('API')
+                            session['task_frequency'] = ""
+                            session['task_description'] = ""
+                            session['task_limit'] = 0
+                            session['task_query'] = ""
+                            session['task_id'] = ""
+                            Message = f"Successful login from {Current_User.get('Username')}."
+                            app.logger.warning(Message)
+                            Create_Event(Message)
+
+                            if not session.get("next_page"):
+                                return redirect(url_for('dashboard'))
+
+                            Redirect = session.get("next_page")
+                            session["next_page"] == ""
+                            return redirect(Redirect)
+
+                    elif Current_User and 'Message' in Current_User:
+                        return render_template('index.html', error='Login Unsuccessful.')
 
                     else:
                         return render_template('index.html')
@@ -542,46 +528,45 @@ if __name__ == '__main__':
 
             try:
 
-                if request.method == 'POST':
-                    time.sleep(1)
-                    user_id = int(session.get('user_id'))
-                    Cursor.execute('SELECT * FROM users WHERE user_id = %s', (user_id,))
-                    User_Info = Cursor.fetchone()
-                    TOTP = pyotp.TOTP(User_Info[7])
+                if request.method != 'POST':
+                    return (
+                        render_template('index.html', mfa_form=True)
+                        if session.get('user_id')
+                        else redirect(url_for('index'))
+                    )
 
-                    if request.form.get("mfa_token") and (request.form["mfa_token"] == TOTP.now()):
-                        session['dashboard-refresh'] = 0
-                        session['user_id'] = User_Info[0]
-                        session['user'] = User_Info[1]
-                        session['is_admin'] = User_Info[4]
-                        session['api_key'] = User_Info[5]
-                        session['task_frequency'] = ""
-                        session['task_description'] = ""
-                        session['task_limit'] = 0
-                        session['task_query'] = ""
-                        session['task_id'] = ""
-                        Message = f"Successful login from {User_Info[1]}."
-                        app.logger.warning(Message)
-                        Create_Event(Message)
+                time.sleep(1)
+                user_id = int(session.get('user_id'))
+                Cursor.execute('SELECT * FROM users WHERE user_id = %s', (user_id,))
+                User_Info = Cursor.fetchone()
+                TOTP = pyotp.TOTP(User_Info[7])
 
-                        if session.get("next_page"):
-                            Redirect = session.get("next_page")
-                            session["next_page"] == ""
-                            return redirect(Redirect)
+                if (
+                    not request.form.get("mfa_token")
+                    or request.form["mfa_token"] != TOTP.now()
+                ):
+                    return render_template('index.html', mfa_form=True, error="Invalid MFA token.")
 
-                        else:
-                            return redirect(url_for('dashboard'))
+                session['dashboard-refresh'] = 0
+                session['user_id'] = User_Info[0]
+                session['user'] = User_Info[1]
+                session['is_admin'] = User_Info[4]
+                session['api_key'] = User_Info[5]
+                session['task_frequency'] = ""
+                session['task_description'] = ""
+                session['task_limit'] = 0
+                session['task_query'] = ""
+                session['task_id'] = ""
+                Message = f"Successful login from {User_Info[1]}."
+                app.logger.warning(Message)
+                Create_Event(Message)
 
-                    else:
-                        return render_template('index.html', mfa_form=True, error="Invalid MFA token.")
+                if not session.get("next_page"):
+                    return redirect(url_for('dashboard'))
 
-                else:
-
-                    if session.get('user_id'):
-                        return render_template('index.html', mfa_form=True)
-
-                    else:
-                        return redirect(url_for('index'))
+                Redirect = session.get("next_page")
+                session["next_page"] == ""
+                return redirect(Redirect)
 
             except Exception as e:
                 app.logger.error(e)
@@ -594,31 +579,37 @@ if __name__ == '__main__':
 
             try:
 
-                if request.is_json:
-                    Content = request.get_json()
-
-                    if 'Username' in Content and 'Password' in Content:
-                        Current_User_Object = User(Content['Username'], Content['Password'])
-                        Current_User = Current_User_Object.authenticate()
-
-                        if 'API' in Current_User:
-                            Current_User_API = Current_User_Object.API_registration()
-
-                            if "Key" in Current_User_API and "Message" in Current_User_API:
-                                return jsonify({"Message": Current_User_API['Message'], "Bearer Token": Current_User_API['Key']}), 200
-
-                            else:
-                                return jsonify({"Error": "Registration Unsuccessful"}), 500
-
-                        elif 'Message' in Current_User:
-                            return jsonify({"Error": "Registration Unsuccessful."}), 500
-
-                    else:
-                        return jsonify({"Error": "Invalid fields in request."}), 500
-
-                else:
+                if not request.is_json:
                     return jsonify({"Error": "Invalid request format."}), 500
-                
+
+                Content = request.get_json()
+
+                if 'Username' not in Content or 'Password' not in Content:
+                    return jsonify({"Error": "Invalid fields in request."}), 500
+
+                Current_User_Object = User(Content['Username'], Content['Password'])
+                Current_User = Current_User_Object.authenticate()
+
+                if 'API' in Current_User:
+                    Current_User_API = Current_User_Object.API_registration()
+
+                    return (
+                        (
+                            jsonify(
+                                {
+                                    "Message": Current_User_API['Message'],
+                                    "Bearer Token": Current_User_API['Key'],
+                                }
+                            ),
+                            200,
+                        )
+                        if "Key" in Current_User_API and "Message" in Current_User_API
+                        else (jsonify({"Error": "Registration Unsuccessful"}), 500)
+                    )
+
+                elif 'Message' in Current_User:
+                    return jsonify({"Error": "Registration Unsuccessful."}), 500
+
             except Exception as e:
                 app.logger.error(e)
                 return jsonify({"Error": "Invalid request format."}), 500
@@ -652,21 +643,12 @@ if __name__ == '__main__':
 
             try:
 
-                if request.method == 'GET':
-                    Purified = {}
-
-                    for Key, Value in Output_API_Checker().items():
-
-                        if Value:
-                            Purified[Key] = True
-
-                        else:
-                            Purified[Key] = False
-
-                    return jsonify({"Inputs": Purified})
-
-                else:
+                if request.method != 'GET':
                     return jsonify({"Error": "Method not allowed."}), 500
+
+                Purified = {Key: bool(Value) for Key, Value in Output_API_Checker().items()}
+
+                return jsonify({"Inputs": Purified})
 
             except Exception as e:
                 app.logger.error(e)
@@ -687,11 +669,7 @@ if __name__ == '__main__':
                     else:
                         Config_Response = Common.Load_Output(Conn_Obj, Type)
 
-                    if Config_Response:
-                        return True
-
-                    else:
-                        return False
+                    return bool(Config_Response)
 
                 Connector_Object = Common.Configuration(Output=True)
                 CSV = Load_Config(Connector_Object, "csv")
@@ -728,11 +706,7 @@ if __name__ == '__main__':
                         else:
                             Config_Response = Common.Load_Output(Conn_Obj, Type)
 
-                        if Config_Response:
-                            return True
-
-                        else:
-                            return False
+                        return bool(Config_Response)
 
                     Connector_Object = Common.Configuration(Output=True)
                     CSV = Load_Config(Connector_Object, "csv")
@@ -816,13 +790,13 @@ if __name__ == '__main__':
                             SS_Req = Cursor.fetchone()
 
                             if not SS_URL[0] and not SS_Req[0]:
-                            
+                                                
                                 def Get_Screenshot(Inner_File_Path, Inner_SS_ID, User_Inner):
                                     General.Screenshot(Inner_File_Path, Screenshot_ID=Inner_SS_ID, Screenshot_User=User_Inner).Grab_Screenshot()
 
                                 def Threaded_Task_Runner(Thread_File_Path, Thread_SS_ID, Thread_User):
                                     global SS_Thread_In_Use
-                                    
+
                                     if SS_Thread_In_Use and SS_Thread_In_Use.is_alive():
                                         Previous_SS_Thread = SS_Thread_In_Use
                                         SS_Thread_In_Use = threading.Thread(target=Get_Screenshot, args=(Thread_File_Path, Thread_SS_ID, Thread_User))
@@ -832,15 +806,31 @@ if __name__ == '__main__':
 
                                 if SS_Thread_In_Use and SS_Thread_In_Use.is_alive():
                                     threading.Thread(target=Threaded_Task_Runner, args=(File_Path, ss_id, str(session.get('user')))).start()
-                                    return jsonify({"Message": f"Successfully queued screenshot for {str(ss_id)}."}), 200
-                                        
+                                    return (
+                                        jsonify(
+                                            {
+                                                "Message": f"Successfully queued screenshot for {ss_id}."
+                                            }
+                                        ),
+                                        200,
+                                    )
+
+
                                 else:
                                     SS_Thread_In_Use = threading.Thread(target=Get_Screenshot, args=(File_Path, ss_id, str(session.get('user'))))
                                     SS_Thread_In_Use.start()
-                                    return jsonify({"Message": f"Successfully requested screenshot for {str(ss_id)}."}), 200
+                                    return (
+                                        jsonify(
+                                            {
+                                                "Message": f"Successfully requested screenshot for {ss_id}."
+                                            }
+                                        ),
+                                        200,
+                                    )
+
 
                             else:
-                                jsonify({"Error": f"Screenshot already requested for result id {str(ss_id)}."})
+                                jsonify({"Error": f"Screenshot already requested for result id {ss_id}."})
 
                         else:
                             return jsonify({"Error": "Screenshot request terminated. Google Chrome and/or Chrome Driver have either not been installed or configured properly."}), 500
@@ -875,16 +865,16 @@ if __name__ == '__main__':
                         Append_Mode = False
 
                         if not SS_Req[0]:
-                        
+
                             if SS_URL[0]:
                                 Append_Mode = True
-                        
+
                             def Get_Screenshot(Inner_File_Path, Inner_SS_ID, User_Inner, Append_Mode_Inner):
                                 General.Screenshot(Inner_File_Path, Screenshot_ID=Inner_SS_ID, Screenshot_User=User_Inner, Append_Mode=Append_Mode_Inner).Grab_Screenshot()
 
                             def Threaded_Task_Runner(Thread_File_Path, Thread_SS_ID, Thread_User, Thread_Append_Mode):
                                 global SS_Thread_In_Use
-                                
+
                                 if SS_Thread_In_Use and SS_Thread_In_Use.is_alive():
                                     Previous_SS_Thread = SS_Thread_In_Use
                                     SS_Thread_In_Use = threading.Thread(target=Get_Screenshot, args=(Thread_File_Path, Thread_SS_ID, Thread_User, Thread_Append_Mode))
@@ -894,16 +884,19 @@ if __name__ == '__main__':
 
                             if SS_Thread_In_Use and SS_Thread_In_Use.is_alive():
                                 threading.Thread(target=Threaded_Task_Runner, args=(File_Path, ss_id, str(session.get('user')), Append_Mode)).start()
-                                    
+
                             else:
                                 SS_Thread_In_Use = threading.Thread(target=Get_Screenshot, args=(File_Path, ss_id, str(session.get('user')), Append_Mode))
                                 SS_Thread_In_Use.start()
 
                         else:
-                            app.logger.warning(f"Screenshot already requested for result id {str(ss_id)}.")
+                            app.logger.warning(f"Screenshot already requested for result id {ss_id}.")
 
                     else:
-                        app.logger.warning(f"Either Google Chrome or Chrome Driver have not been installed / configured. Screenshot request terminated.")                    
+                        app.logger.warning(
+                            "Either Google Chrome or Chrome Driver have not been installed / configured. Screenshot request terminated."
+                        )
+                                            
 
                 else:
                     app.logger.warning("Screenshots currently disabled due to a mismatch between Google Chrome and Chrome Driver versions on the server.")
@@ -932,11 +925,9 @@ if __name__ == '__main__':
                 open_values = []
                 closed_values = []
                 mixed_values = []
-                Use_Open = True
-                Use_Closed = True
                 Use_Mixed = True
 
-                for Finding_Type in Finding_Types:
+                for Finding_Type in labels:
                     Cursor.execute(PSQL_Select_Query_1, ("Open", Finding_Type,))
                     current_open_results = Cursor.fetchall()
                     open_values.append([current_open_results[0][0]])
@@ -960,9 +951,9 @@ if __name__ == '__main__':
                     Unsuccessful_User_Dates = []
 
                     for Date in Dates:
-                        SQL_Date = Date + "%"
-                        SQL_User_Success = "Successful login from " + Current_User + "%"
-                        SQL_User_Fail = "Failed login attempt for user " + Current_User + "%"
+                        SQL_Date = f"{Date}%"
+                        SQL_User_Success = f"Successful login from {Current_User}%"
+                        SQL_User_Fail = f"Failed login attempt for user {Current_User}%"
                         Cursor.execute("SELECT count(*) FROM events WHERE created_at LIKE %s AND description LIKE %s;", (SQL_Date, SQL_User_Success,))
                         Current_Date_Count = Cursor.fetchall()
                         Successful_User_Dates.append(Current_Date_Count[0][0])
@@ -983,12 +974,8 @@ if __name__ == '__main__':
                     most_common_tasks_labels.append(mc_task[0])
                     most_common_tasks_values.append(mc_task[1])
 
-                if all(open_item == [0] for open_item in open_values):
-                    Use_Open = False
-
-                if all(closed_item == [0] for closed_item in closed_values):
-                    Use_Closed = False
-
+                Use_Open = any(open_item != [0] for open_item in open_values)
+                Use_Closed = any(closed_item != [0] for closed_item in closed_values)
                 if all(mixed_item == [0] for mixed_item in mixed_values):
                     Use_Mixed = False
 
@@ -997,7 +984,7 @@ if __name__ == '__main__':
 
                 if most_common_tasks:
                     return render_template('dashboard.html', is_admin=session.get('is_admin'), username=session.get('user'), max=17000, open_set=[open_values, labels, colors], closed_set=[closed_values, labels, colors], mixed_set=[mixed_values, labels, colors], bar_set=[most_common_tasks_labels, most_common_tasks_values, colors_original[:len(most_common_tasks_values)]], successful_line_set=[Dates, Successful_User_Dates_Count], unsuccessful_line_set=[Dates, Unsuccessful_User_Dates_Count], Use_Open=Use_Open, Use_Closed=Use_Closed, Use_Mixed=Use_Mixed, refreshrate=session.get('dashboard-refresh'), version=Version)
-            
+
                 else:
                     return render_template('dashboard.html', is_admin=session.get('is_admin'), username=session.get('user'), max=17000, open_set=[open_values, labels, colors], closed_set=[closed_values, labels, colors], mixed_set=[mixed_values, labels, colors], successful_line_set=[Dates, Successful_User_Dates_Count], unsuccessful_line_set=[Dates, Unsuccessful_User_Dates_Count], Use_Open=Use_Open, Use_Closed=Use_Closed, Use_Mixed=Use_Mixed, refreshrate=session.get('dashboard-refresh'), version=Version)
 
@@ -1016,13 +1003,7 @@ if __name__ == '__main__':
 
                     if refresh_rate in approved_refresh_rates:
                         session['dashboard-refresh'] = refresh_rate
-                        return redirect(url_for('dashboard'))
-
-                    else:
-                        return redirect(url_for('dashboard'))
-
-                else:
-                    return redirect(url_for('dashboard'))
+                return redirect(url_for('dashboard'))
 
             except Exception as e:
                 app.logger.error(e)

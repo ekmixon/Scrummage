@@ -28,12 +28,10 @@ class Plugin_Search:
             Cached_Data = Cached_Data_Object.Get_Cache()
 
             for Query in self.Query_List:
-                URL_Components = Common.Regex_Handler(Query, Type="URL", Get_URL_Components=True)
-
-                if URL_Components:
-                    BW_Info = builtwith(Query)
-
-                    if BW_Info:
+                if URL_Components := Common.Regex_Handler(
+                    Query, Type="URL", Get_URL_Components=True
+                ):
+                    if BW_Info := builtwith(Query):
                         BW_JSON_Output = Common.JSON_Handler(BW_Info).Dump_JSON()
                         Query_Domain = URL_Components["Body"] + URL_Components["Extension"]
                         Title = f"{self.Plugin_Name} | {Query_Domain}"
@@ -44,9 +42,14 @@ class Plugin_Search:
                         Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
 
                         if BW_Search_URL not in Cached_Data and BW_Search_URL not in Data_to_Cache:
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, Query, self.The_File_Extensions['Query'])
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                self.Plugin_Name,
+                                Response,
+                                Query,
+                                self.The_File_Extensions['Query'],
+                            ):
                                 Output_Connections.Output([Main_File, Output_file], BW_Search_URL, Title, self.Plugin_Name.lower())
                                 Data_to_Cache.append(BW_Search_URL)
 

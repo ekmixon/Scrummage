@@ -16,9 +16,9 @@ class Plugin_Search:
 
     def Load_Configuration(self):
         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Loading configuration data.")
-        Result = Common.Configuration(Input=True).Load_Configuration(Location=True, Object="general", Details_to_Load=["location"])
-
-        if Result:
+        if Result := Common.Configuration(Input=True).Load_Configuration(
+            Location=True, Object="general", Details_to_Load=["location"]
+        ):
             return Result
 
         else:
@@ -64,12 +64,20 @@ class Plugin_Search:
                             JSON_Object_Response = JSON_Object_Responses["Filtered"]
 
                             if JSON_Resp_Item['artistViewUrl'] not in Cached_Data and JSON_Resp_Item['artistViewUrl'] not in Data_to_Cache:
-                                Apple_Store_Regex = Common.Regex_Handler(JSON_Resp_Item['artistViewUrl'], Custom_Regex=r"https\:\/\/apps\.apple\.com\/" + rf"{Location}" + r"\/developer\/[\w\d\-]+\/(id[\d]{9,10})\?.+")
-
-                                if Apple_Store_Regex:
-                                    Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, JSON_Object_Response, Apple_Store_Regex.group(1), self.The_File_Extensions["Query"])
-
-                                    if Output_file:
+                                if Apple_Store_Regex := Common.Regex_Handler(
+                                    JSON_Resp_Item['artistViewUrl'],
+                                    Custom_Regex=r"https\:\/\/apps\.apple\.com\/"
+                                    + rf"{Location}"
+                                    + r"\/developer\/[\w\d\-]+\/(id[\d]{9,10})\?.+",
+                                ):
+                                    if Output_file := General.Create_Query_Results_Output_File(
+                                        Directory,
+                                        Query,
+                                        self.Plugin_Name,
+                                        JSON_Object_Response,
+                                        Apple_Store_Regex.group(1),
+                                        self.The_File_Extensions["Query"],
+                                    ):
                                         Output_Connections.Output([Main_File, Output_file], JSON_Resp_Item['artistViewUrl'], General.Get_Title(JSON_Resp_Item['artistViewUrl']), self.Concat_Plugin_Name)
                                         Data_to_Cache.append(JSON_Resp_Item['artistViewUrl'])
 

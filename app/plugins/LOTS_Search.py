@@ -33,17 +33,24 @@ class Plugin_Search:
                 Response = Responses["Filtered"]
                 Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
 
-                if Query in Response:
+                if (
+                    Query in Response
+                    and Output_URL not in Cached_Data
+                    and Output_URL not in Data_to_Cache
+                ):
+                    if Output_file := General.Create_Query_Results_Output_File(
+                        Directory,
+                        Query,
+                        self.Plugin_Name,
+                        Response,
+                        Query,
+                        self.The_File_Extension,
+                    ):
+                        Output_Connections.Output([Output_file], Output_URL, General.Get_Title(Search_URL), self.Plugin_Name.lower())
+                        Data_to_Cache.append(Output_URL)
 
-                    if Output_URL not in Cached_Data and Output_URL not in Data_to_Cache:
-                        Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, Query, self.The_File_Extension)
-
-                        if Output_file:
-                            Output_Connections.Output([Output_file], Output_URL, General.Get_Title(Search_URL), self.Plugin_Name.lower())
-                            Data_to_Cache.append(Output_URL)
-
-                        else:
-                            logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create output file. File may already exist.")
+                    else:
+                        logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create output file. File may already exist.")
 
             Cached_Data_Object.Write_Cache(Data_to_Cache)
 

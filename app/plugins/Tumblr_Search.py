@@ -14,9 +14,15 @@ class Plugin_Search:
 
     def Load_Configuration(self):
         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Loading configuration data.")
-        Result = Common.Configuration(Input=True).Load_Configuration(Object=self.Plugin_Name.lower(), Details_to_Load=["consumer_key", "consumer_secret", "oauth_token", "oauth_secret"])
-
-        if Result:
+        if Result := Common.Configuration(Input=True).Load_Configuration(
+            Object=self.Plugin_Name.lower(),
+            Details_to_Load=[
+                "consumer_key",
+                "consumer_secret",
+                "oauth_token",
+                "oauth_secret",
+            ],
+        ):
             return Result
 
         else:
@@ -53,12 +59,17 @@ class Plugin_Search:
                         Title = f"{self.Plugin_Name} | " + str(Response["blog"]["title"])
 
                     else:
-                        Title = f"{self.Plugin_Name} | " + General.Get_Title(Link, Requests=True)
+                        Title = f"{self.Plugin_Name} | {General.Get_Title(Link, Requests=True)}"
 
                     if Link not in Cached_Data and Link not in Data_to_Cache:
-                        Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Filtered_Response, Link, self.The_File_Extensions["Query"])
-
-                        if Output_file:
+                        if Output_file := General.Create_Query_Results_Output_File(
+                            Directory,
+                            Query,
+                            self.Plugin_Name,
+                            Filtered_Response,
+                            Link,
+                            self.The_File_Extensions["Query"],
+                        ):
                             Output_Connections.Output([Main_File, Output_file], Link, Title, self.Plugin_Name.lower())
                             Data_to_Cache.append(Link)
 

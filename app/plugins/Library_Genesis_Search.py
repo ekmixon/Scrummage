@@ -33,9 +33,11 @@ class Plugin_Search:
                 Main_URL = f"http://{self.Domain}/search.php?req={Query}&lg_topic=libgen&open=0&view=simple&res=100&phrase=1&column=def"
                 Lib_Gen_Response = Common.Request_Handler(Main_URL)
                 Main_File = General.Main_File_Create(Directory, self.Plugin_Name, Lib_Gen_Response, Query, self.The_File_Extension)
-                Lib_Gen_Regex = Common.Regex_Handler(Lib_Gen_Response, Custom_Regex=r"book\/index\.php\?md5=[A-Fa-f0-9]{32}", Findall=True)
-
-                if Lib_Gen_Regex:
+                if Lib_Gen_Regex := Common.Regex_Handler(
+                    Lib_Gen_Response,
+                    Custom_Regex=r"book\/index\.php\?md5=[A-Fa-f0-9]{32}",
+                    Findall=True,
+                ):
                     Current_Step = 0
 
                     for Regex in Lib_Gen_Regex:
@@ -45,9 +47,14 @@ class Plugin_Search:
                         Lib_Item_Response = Lib_Item_Responses["Filtered"]
 
                         if Item_URL not in Cached_Data and Item_URL not in Data_to_Cache and Current_Step < int(self.Limit):
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Lib_Item_Response, Regex, self.The_File_Extension)
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                self.Plugin_Name,
+                                Lib_Item_Response,
+                                Regex,
+                                self.The_File_Extension,
+                            ):
                                 Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Concat_Plugin_Name)
                                 Output_Connections.Output([Main_File, Output_file], Item_URL, Title, self.Concat_Plugin_Name)
                                 Data_to_Cache.append(Item_URL)

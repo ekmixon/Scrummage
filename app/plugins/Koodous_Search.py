@@ -28,8 +28,8 @@ class Plugin_Search:
             Cached_Data_Object = General.Cache(Directory, self.Plugin_Name)
             Cached_Data = Cached_Data_Object.Get_Cache()
 
+            Pagination = 25
             for Query in self.Query_List:
-                Pagination = 25
                 Case = False
                 Results = []
                 Params = {'search': Query}
@@ -51,23 +51,20 @@ class Plugin_Search:
                             JSON_Response = Common.JSON_Handler(Response).To_JSON_Loads()
                             Current_Results = JSON_Response["results"]
 
-                            if Tally < self.Limit:
-                                Difference = self.Limit - Tally
+                            if Tally >= self.Limit:
+                                break
 
-                                if Difference >= Pagination:
-                                    Results.extend(Current_Results)
-                                    Tally += Pagination
+                            Difference = self.Limit - Tally
 
-                                else:
+                            if Difference >= Pagination:
+                                Results.extend(Current_Results)
+                                Tally += Pagination
 
-                                    if Difference <= len(Current_Results):
-                                        Results.extend(Current_Results[:Difference])
-
-                                    else:
-                                        Results.extend(Current_Results)
+                            elif Difference <= len(Current_Results):
+                                Results.extend(Current_Results[:Difference])
 
                             else:
-                                break
+                                Results.extend(Current_Results)
 
                     Case = True
 
@@ -88,7 +85,7 @@ class Plugin_Search:
 
                     for Result in Results:
                         Result_URL = "https://koodous.com/apks/" + Result["sha256"]
-                        
+
                         if Result_URL not in Cached_Data and Result_URL not in Data_to_Cache:
                             Responses = Common.Request_Handler(Result_URL, Filter=True, Host=f"https://{self.Domain}")
                             Response = Responses["Filtered"]
@@ -99,9 +96,14 @@ class Plugin_Search:
                             else:
                                 Title = f"{self.Plugin_Name} | {Query}"
 
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, Title, self.The_File_Extensions["Query"])
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                self.Plugin_Name,
+                                Response,
+                                Title,
+                                self.The_File_Extensions["Query"],
+                            ):
                                 Output_Connections.Output([Main_File, Output_file], Result_URL, Title, self.Plugin_Name.lower())
                                 Data_to_Cache.append(Result_URL)
 

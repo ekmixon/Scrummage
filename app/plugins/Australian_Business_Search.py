@@ -34,7 +34,7 @@ class Plugin_Search:
                 try:
 
                     if self.Type == "ABN":
-                        Main_URL = f'https://{self.Domain}/ABN/View?id=' + Query
+                        Main_URL = f'https://{self.Domain}/ABN/View?id={Query}'
                         Responses = Common.Request_Handler(Main_URL, Filter=True, Host=f"https://www.{self.Domain}")
                         Response = Responses["Regular"]
 
@@ -45,9 +45,14 @@ class Plugin_Search:
                                 Response = Responses["Filtered"]
 
                                 if Main_URL not in Cached_Data and Main_URL not in Data_to_Cache:
-                                    Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, General.Get_Title(Main_URL), self.The_File_Extensions["Query"])
-
-                                    if Output_file:
+                                    if Output_file := General.Create_Query_Results_Output_File(
+                                        Directory,
+                                        Query,
+                                        self.Plugin_Name,
+                                        Response,
+                                        General.Get_Title(Main_URL),
+                                        self.The_File_Extensions["Query"],
+                                    ):
                                         Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name)
                                         Output_Connections.Output([Output_file], Main_URL, General.Get_Title(Main_URL).strip(" | ABN Lookup"), self.Concat_Plugin_Name)
                                         Data_to_Cache.append(Main_URL)
@@ -69,16 +74,18 @@ class Plugin_Search:
                         Filtered_Response = Responses["Filtered"]
 
                         try:
-                            ACN_Regex = Common.Regex_Handler(Query, Type="Company_Name")
-
-                            if ACN_Regex:
+                            if ACN_Regex := Common.Regex_Handler(
+                                Query, Type="Company_Name"
+                            ):
                                 Main_File = General.Main_File_Create(Directory, self.Plugin_Name, Filtered_Response, Query, self.The_File_Extensions["Main"])
-                                Current_Step = 0
-                                ABNs_Regex = Common.Regex_Handler(Response, Custom_Regex=r"\<input\sid\=\"Results\_NameItems\_\d+\_\_Compressed\"\sname\=\"Results\.NameItems\[\d+\]\.Compressed\"\stype\=\"hidden\"\svalue\=\"(\d{11})\,\d{2}\s\d{3}\s\d{3}\s\d{3}\,0000000001\,Active\,active\,([\d\w\s\&\-\_\.]+)\,Current\,", Findall=True)
-
-                                if ABNs_Regex:
+                                if ABNs_Regex := Common.Regex_Handler(
+                                    Response,
+                                    Custom_Regex=r"\<input\sid\=\"Results\_NameItems\_\d+\_\_Compressed\"\sname\=\"Results\.NameItems\[\d+\]\.Compressed\"\stype\=\"hidden\"\svalue\=\"(\d{11})\,\d{2}\s\d{3}\s\d{3}\s\d{3}\,0000000001\,Active\,active\,([\d\w\s\&\-\_\.]+)\,Current\,",
+                                    Findall=True,
+                                ):
                                     Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name)
 
+                                    Current_Step = 0
                                     for ABN_URL, ACN in ABNs_Regex:
                                         Full_ABN_URL = f'https://{self.Domain}/ABN/View?abn={ABN_URL}'
 
@@ -86,9 +93,14 @@ class Plugin_Search:
                                             ACN = ACN.rstrip()
                                             Current_Responses = Common.Request_Handler(Full_ABN_URL, Filter=True, Host=f"https://www.{self.Domain}")
                                             Current_Response = Current_Responses["Filtered"]
-                                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, str(Current_Response), ACN.replace(' ', '-'), self.The_File_Extensions["Query"])
-
-                                            if Output_file:
+                                            if Output_file := General.Create_Query_Results_Output_File(
+                                                Directory,
+                                                Query,
+                                                self.Plugin_Name,
+                                                str(Current_Response),
+                                                ACN.replace(' ', '-'),
+                                                self.The_File_Extensions["Query"],
+                                            ):
                                                 Output_Connections.Output([Main_File, Output_file], Full_ABN_URL, General.Get_Title(Full_ABN_URL).strip(" | ABN Lookup"), self.Concat_Plugin_Name)
                                                 Data_to_Cache.append(Full_ABN_URL)
 

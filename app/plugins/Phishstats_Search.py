@@ -56,31 +56,35 @@ class Plugin_Search:
                             Response_Regex = Common.Regex_Handler(Current_Result, Custom_Regex=r"\<title\>([^\<\>]+)\<\/title\>")
                             Output_file_Query = Query.replace(" ", "-")
 
-                            if Current_Link not in Cached_Data and Current_Link not in Data_to_Cache:
-                                Output_file = General.Create_Query_Results_Output_File(Directory, Output_file_Query, self.Plugin_Name, Current_Result_Filtered, Current_Domain, self.The_File_Extensions["Query"])
+                            if (
+                                Current_Link in Cached_Data
+                                or Current_Link in Data_to_Cache
+                            ):
+                                logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to resolve DNS, this link probably isn't live.")
 
-                                if Output_file:
+                            elif Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Output_file_Query,
+                                self.Plugin_Name,
+                                Current_Result_Filtered,
+                                Current_Domain,
+                                self.The_File_Extensions["Query"],
+                            ):
+                                if Response_Regex:
+                                    Current_Title = Response_Regex.group(1)
+                                    Current_Title = Current_Title.strip()
+                                    Output_Connections.Output([Main_File, Output_file], Current_Link, Current_Title, self.Plugin_Name.lower())
 
-                                    if Response_Regex:
-                                        Current_Title = Response_Regex.group(1)
-                                        Current_Title = Current_Title.strip()
-                                        Output_Connections.Output([Main_File, Output_file], Current_Link, Current_Title, self.Plugin_Name.lower())
-
-                                    else:
-
-                                        if not "Phishstats" in Current_Title:
-                                            Output_Connections.Output([Main_File, Output_file], Current_Link, Current_Title, self.Plugin_Name.lower())
-
-                                        else:
-                                            Output_Connections.Output([Main_File, Output_file], Current_Link, General.Get_Title(Current_Link), self.Plugin_Name.lower())
-
-                                    Data_to_Cache.append(Current_Link)
+                                elif "Phishstats" in Current_Title:
+                                    Output_Connections.Output([Main_File, Output_file], Current_Link, General.Get_Title(Current_Link), self.Plugin_Name.lower())
 
                                 else:
-                                    logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create output file. File may already exist.")
+                                    Output_Connections.Output([Main_File, Output_file], Current_Link, Current_Title, self.Plugin_Name.lower())
+
+                                Data_to_Cache.append(Current_Link)
 
                             else:
-                                logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to resolve DNS, this link probably isn't live.")
+                                logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create output file. File may already exist.")
 
                 except:
                     logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to make request.")

@@ -40,9 +40,14 @@ class Plugin_Search:
 
                         if "This data is Not on the Map yet!" not in Response and Query not in Cached_Data and Query not in Data_to_Cache:
                             Title = f"{self.Plugin_Name} {self.Type} | {Query}"
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, Title, self.The_File_Extension)
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                self.Plugin_Name,
+                                Response,
+                                Title,
+                                self.The_File_Extension,
+                            ):
                                 Output_Connections.Output([Main_File, Output_file], URL, Title, self.Plugin_Name.lower())
                                 Data_to_Cache.append(Query)
 
@@ -66,9 +71,14 @@ class Plugin_Search:
 
                         if "This data is Not on the Map yet!" not in Response and Query not in Cached_Data and Query not in Data_to_Cache:
                             Title = f"{self.Plugin_Name} {self.Type} | {Query}"
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, Title, self.The_File_Extension)
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                self.Plugin_Name,
+                                Response,
+                                Title,
+                                self.The_File_Extension,
+                            ):
                                 Output_Connections.Output([Main_File, Output_file], URL, Title, self.Plugin_Name.lower())
                                 Data_to_Cache.append(Query)
 

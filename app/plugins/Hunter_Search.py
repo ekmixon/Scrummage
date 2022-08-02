@@ -16,9 +16,9 @@ class Plugin_Search:
 
     def Load_Configuration(self):
         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Loading configuration data.")
-        Result = Common.Configuration(Input=True).Load_Configuration(Object=self.Plugin_Name.lower(), Details_to_Load=["api_key"])
-
-        if Result:
+        if Result := Common.Configuration(Input=True).Load_Configuration(
+            Object=self.Plugin_Name.lower(), Details_to_Load=["api_key"]
+        ):
             return Result
 
         else:
@@ -47,7 +47,7 @@ class Plugin_Search:
                     if self.Type == "Domain":
 
                         if Common.Regex_Handler(Query, Type="Domain"):
-                            Local_Plugin_Name = self.Plugin_Name + "-Domain"
+                            Local_Plugin_Name = f"{self.Plugin_Name}-Domain"
                             API_Response = API_Session.domain_search(Query)
                             JSON_Output_Response = Common.JSON_Handler(API_Response).Dump_JSON()
 
@@ -61,12 +61,17 @@ class Plugin_Search:
                                     Current_Hunter_Item_Host = f"https://{self.Domain}/verify/{Current_Email_Address}"
                                     Current_Hunter_Item_Responses = Common.Request_Handler(Current_Hunter_Item_Host, Filter=True, Host=f"https://{self.Domain}")
                                     Filtered_Response = Current_Hunter_Item_Responses["Filtered"]
-                                    Title = f"{self.Plugin_Name} | " + Current_Email_Address
+                                    Title = f"{self.Plugin_Name} | {Current_Email_Address}"
 
                                     if Current_Email_Address not in Cached_Data and Current_Email_Address not in Data_to_Cache and Current_Step < int(self.Limit):
-                                        Output_file = General.Create_Query_Results_Output_File(Directory, Query, Local_Plugin_Name, Filtered_Response, Current_Hunter_Item_Host, self.The_File_Extensions["Query"])
-
-                                        if Output_file:
+                                        if Output_file := General.Create_Query_Results_Output_File(
+                                            Directory,
+                                            Query,
+                                            Local_Plugin_Name,
+                                            Filtered_Response,
+                                            Current_Hunter_Item_Host,
+                                            self.The_File_Extensions["Query"],
+                                        ):
                                             Output_Connections.Output([Main_File, Output_file], Current_Hunter_Item_Host, Title, self.Plugin_Name.lower())
                                             Data_to_Cache.append(Current_Email_Address)
 
@@ -81,7 +86,7 @@ class Plugin_Search:
                     elif self.Type == "Email":
 
                         if Common.Regex_Handler(Query, Type="Email"):
-                            Local_Plugin_Name = self.Plugin_Name + "-Email"
+                            Local_Plugin_Name = f"{self.Plugin_Name}-Email"
                             API_Response = API_Session.email_verifier(Query)
                             JSON_Output_Response = Common.JSON_Handler(API_Response).Dump_JSON()
 
@@ -105,12 +110,17 @@ class Plugin_Search:
                                     else:
                                         Filtered_Response = Common.Request_Handler(Current_Hunter_Item_Host)
 
-                                    Title = f"{self.Plugin_Name} | " + Current_Hunter_Item_Host
+                                    Title = f"{self.Plugin_Name} | {Current_Hunter_Item_Host}"
 
                                     if Current_Hunter_Item_Host not in Cached_Data and Current_Hunter_Item_Host not in Data_to_Cache and Current_Step < int(self.Limit):
-                                        Output_file = General.Create_Query_Results_Output_File(Directory, Query, Local_Plugin_Name, Filtered_Response, Current_Hunter_Item_Host, self.The_File_Extensions["Query"])
-
-                                        if Output_file:
+                                        if Output_file := General.Create_Query_Results_Output_File(
+                                            Directory,
+                                            Query,
+                                            Local_Plugin_Name,
+                                            Filtered_Response,
+                                            Current_Hunter_Item_Host,
+                                            self.The_File_Extensions["Query"],
+                                        ):
                                             Output_Connections.Output([Main_File, Output_file], Current_Hunter_Item_Host, Title, self.Plugin_Name.lower())
                                             Data_to_Cache.append(Current_Hunter_Item_Host)
 

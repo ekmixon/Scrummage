@@ -35,14 +35,19 @@ class Plugin_Search:
                     Result_Type = self.Type
 
                     if self.Type == "IP":
-                        Result_Type = self.Type + " Address"
+                        Result_Type = f"{self.Type} Address"
 
                     Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, f"{Result_Type} Information", self.Task_ID, self.Plugin_Name.lower())
 
                     if Search_URL not in Cached_Data and Search_URL not in Data_to_Cache:
-                        Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Filtered_Response, Query, self.The_File_Extension)
-
-                        if Output_file:
+                        if Output_file := General.Create_Query_Results_Output_File(
+                            Directory,
+                            Query,
+                            self.Plugin_Name,
+                            Filtered_Response,
+                            Query,
+                            self.The_File_Extension,
+                        ):
                             Output_Connections.Output([Output_file], Search_URL, f"{self.Plugin_Name} {self.Type} | {Query}", self.Plugin_Name.lower())
                             Data_to_Cache.append(Search_URL)
 

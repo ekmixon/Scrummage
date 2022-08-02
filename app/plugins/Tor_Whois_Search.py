@@ -37,9 +37,14 @@ class Plugin_Search:
                     Output_URL = f"{Search_URL}?{Query}"
 
                     if Output_URL not in Cached_Data and Output_URL not in Data_to_Cache:
-                        Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, Query, self.The_File_Extension)
-
-                        if Output_file:
+                        if Output_file := General.Create_Query_Results_Output_File(
+                            Directory,
+                            Query,
+                            self.Plugin_Name,
+                            Response,
+                            Query,
+                            self.The_File_Extension,
+                        ):
                             Output_Connections.Output([Output_file], Output_URL, f"Tor Whois | {Query}", self.Plugin_Name.lower())
                             Data_to_Cache.append(Output_URL)
 

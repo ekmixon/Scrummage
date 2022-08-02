@@ -30,31 +30,33 @@ class Plugin_Search:
 
             for Query in self.Query_List:
                 URL_Body = f'https://{self.Domain}'
-                Main_URL = URL_Body + '/' + Query.lower().replace(' ', '-')
+                Main_URL = f'{URL_Body}/' + Query.lower().replace(' ', '-')
                 Responses = Common.Request_Handler(Main_URL, Filter=True, Host=f"https://www.{self.Domain}")
                 Response = Responses["Regular"]
                 Filtered_Response = Responses["Filtered"]
                 Main_File = General.Main_File_Create(Directory, self.Plugin_Name, Filtered_Response, Query, self.The_File_Extension)
-                Regex = Common.Regex_Handler(Response, Custom_Regex=r"\<tr\>\s+\<td\sclass\=\"name\"\>\s+\<a\shref\=\"([\/\d\w\-\+\?\.]+)\"\>([\/\d\w\-\+\?\.\(\)\s\,\;\:\~\`\!\@\#\$\%\^\&\*\[\]\{\}]+)\<\/a\>\s+\<\/td\>", Findall=True)
-
-                if Regex:
+                if Regex := Common.Regex_Handler(
+                    Response,
+                    Custom_Regex=r"\<tr\>\s+\<td\sclass\=\"name\"\>\s+\<a\shref\=\"([\/\d\w\-\+\?\.]+)\"\>([\/\d\w\-\+\?\.\(\)\s\,\;\:\~\`\!\@\#\$\%\^\&\*\[\]\{\}]+)\<\/a\>\s+\<\/td\>",
+                    Findall=True,
+                ):
                     Current_Step = 0
                     Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Concat_Plugin_Name)
 
                     for URL, Title in Regex:
                         Item_URL = URL_Body + URL
                         Current_Response = Common.Request_Handler(Item_URL)
-                        Current_Item_Regex = Common.Regex_Handler(Current_Response, Custom_Regex=r"\<button\sclass\=\"btn\sbtn\-primary\spassword\"\s+data\-data\=\"([\-\d\w\?\/]+)\"\s+data\-toggle\=\"modal\"\s+data\-target\=\"\#modal\"\s+\>show\sme\!\<\/button\>")
-                        
-                        if Current_Item_Regex:
-
+                        if Current_Item_Regex := Common.Regex_Handler(
+                            Current_Response,
+                            Custom_Regex=r"\<button\sclass\=\"btn\sbtn\-primary\spassword\"\s+data\-data\=\"([\-\d\w\?\/]+)\"\s+data\-toggle\=\"modal\"\s+data\-target\=\"\#modal\"\s+\>show\sme\!\<\/button\>",
+                        ):
                             try:
                                 Detailed_Item_URL = URL_Body + Current_Item_Regex.group(1)
                                 Detailed_Responses = Common.Request_Handler(Detailed_Item_URL, Filter=True, Host=f"https://www.{self.Domain}")
                                 Detailed_Response = Detailed_Responses["Regular"]
-                                JSON_Response = Common.JSON_Handler(Detailed_Response).Is_JSON()
-
-                                if JSON_Response:
+                                if JSON_Response := Common.JSON_Handler(
+                                    Detailed_Response
+                                ).Is_JSON():
                                     Output_Response = "<head><title>" + JSON_Response["title"] + "</title></head>\n"
                                     Output_Response = Output_Response + JSON_Response["data"]
 
@@ -62,9 +64,14 @@ class Plugin_Search:
                                     Output_Response = Detailed_Responses["Filtered"]
 
                                 if Item_URL not in Cached_Data and Item_URL not in Data_to_Cache and Current_Step < int(self.Limit):
-                                    Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Output_Response, Title, self.The_File_Extension)
-
-                                    if Output_file:
+                                    if Output_file := General.Create_Query_Results_Output_File(
+                                        Directory,
+                                        Query,
+                                        self.Plugin_Name,
+                                        Output_Response,
+                                        Title,
+                                        self.The_File_Extension,
+                                    ):
                                         Output_Connections.Output([Main_File, Output_file], Item_URL, General.Get_Title(Item_URL), self.Concat_Plugin_Name)
                                         Data_to_Cache.append(Item_URL)
 

@@ -44,9 +44,14 @@ class Plugin_Search:
                                 Query = str(int(Query))
 
                                 if Main_URL not in Cached_Data and Main_URL not in Data_to_Cache:
-                                    Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, f"new-zealand-business-number-{Query.lower()}", self.The_File_Extension)
-
-                                    if Output_file:
+                                    if Output_file := General.Create_Query_Results_Output_File(
+                                        Directory,
+                                        Query,
+                                        self.Plugin_Name,
+                                        Response,
+                                        f"new-zealand-business-number-{Query.lower()}",
+                                        self.The_File_Extension,
+                                    ):
                                         Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name)
                                         Output_Connections.Output([Output_file], Main_URL, f"New Zealand Business Number {Query}", self.Concat_Plugin_Name)
                                         Data_to_Cache.append(Main_URL)
@@ -64,13 +69,15 @@ class Plugin_Search:
                             Main_URL = f'https://{self.Domain}/companies/app/ui/pages/companies/search?q={URL_Query}&entityTypes=ALL&entityStatusGroups=ALL&incorpFrom=&incorpTo=&addressTypes=ALL&addressKeyword=&start=0&limit={str(self.Limit)}&sf=&sd=&advancedPanel=true&mode=advanced#results'
                             Responses = Common.Request_Handler(Main_URL, Filter=True, Host=f"https://{self.Domain}")
                             Response = Responses["Filtered"]
-                            NZCN_Regex = Common.Regex_Handler(Query, Type="Company_Name")
-
-                            if NZCN_Regex:
+                            if NZCN_Regex := Common.Regex_Handler(
+                                Query, Type="Company_Name"
+                            ):
                                 Main_File = General.Main_File_Create(Directory, self.Plugin_Name, Response, Query, self.The_File_Extension)
-                                NZBNs_Regex = Common.Regex_Handler(Response, Custom_Regex=r"\<span\sclass\=\"entityName\"\>([\w\d\s\-\_\&\|\!\@\#\$\%\^\*\(\)\.\,]+)\<\/span\>\s<span\sclass\=\"entityInfo\"\>\((\d+)\)\s\(NZBN\:\s(\d+)\)", Findall=True)
-
-                                if NZBNs_Regex:
+                                if NZBNs_Regex := Common.Regex_Handler(
+                                    Response,
+                                    Custom_Regex=r"\<span\sclass\=\"entityName\"\>([\w\d\s\-\_\&\|\!\@\#\$\%\^\*\(\)\.\,]+)\<\/span\>\s<span\sclass\=\"entityInfo\"\>\((\d+)\)\s\(NZBN\:\s(\d+)\)",
+                                    Findall=True,
+                                ):
                                     Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name)
 
                                     for NZCN, NZ_ID, NZBN_URL in NZBNs_Regex:
@@ -78,9 +85,14 @@ class Plugin_Search:
 
                                         if Full_NZBN_URL not in Cached_Data and Full_NZBN_URL not in Data_to_Cache:
                                             Current_Response = Common.Request_Handler(Full_NZBN_URL)
-                                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, str(Current_Response), NZCN.replace(' ', '-'), self.The_File_Extension)
-
-                                            if Output_file:
+                                            if Output_file := General.Create_Query_Results_Output_File(
+                                                Directory,
+                                                Query,
+                                                self.Plugin_Name,
+                                                str(Current_Response),
+                                                NZCN.replace(' ', '-'),
+                                                self.The_File_Extension,
+                                            ):
                                                 Output_Connections.Output([Main_File, Output_file], Full_NZBN_URL, f"New Zealand Business Number {NZ_ID} for Query {Query}", self.Concat_Plugin_Name)
                                                 Data_to_Cache.append(Full_NZBN_URL)
 

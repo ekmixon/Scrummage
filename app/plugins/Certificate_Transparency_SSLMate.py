@@ -14,9 +14,9 @@ class Plugin_Search:
 
     def Load_Configuration(self):
         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Loading configuration data.")
-        Result = Common.Configuration(Input=True).Load_Configuration(Object=self.Plugin_Name.lower(), Details_to_Load=["search_subdomain"])
-
-        if Result:
+        if Result := Common.Configuration(Input=True).Load_Configuration(
+            Object=self.Plugin_Name.lower(), Details_to_Load=["search_subdomain"]
+        ):
             return Result
 
         else:
@@ -50,42 +50,45 @@ class Plugin_Search:
                 JSON_Response = JSON_Object.To_JSON_Loads()
                 Indented_JSON_Response = JSON_Object.Dump_JSON()
 
-                if 'exists' not in JSON_Response:
+                if 'exists' in JSON_Response:
+                    logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Query does not exist.")
 
-                    if JSON_Response:
+                elif JSON_Response:
 
-                        if Request not in Cached_Data and Request not in Data_to_Cache:
+                    if Request not in Cached_Data and Request not in Data_to_Cache:
 
-                            try:
-                                SSLMate_Regex = Common.Regex_Handler(Query, Type="Domain")
+                        try:
+                            if SSLMate_Regex := Common.Regex_Handler(
+                                Query, Type="Domain"
+                            ):
+                                if Output_file := General.Create_Query_Results_Output_File(
+                                    Directory,
+                                    Query,
+                                    self.Plugin_Name.lower(),
+                                    Indented_JSON_Response,
+                                    SSLMate_Regex.group(1),
+                                    self.The_File_Extension,
+                                ):
+                                    Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
+                                    Data_to_Cache.append(Request)
 
-                                if SSLMate_Regex:
-                                    Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name.lower(), Indented_JSON_Response, SSLMate_Regex.group(1), self.The_File_Extension)
-
-                                    if Output_file:
-                                        Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
-                                        Data_to_Cache.append(Request)
-
-                                        if Subdomains:
-                                            Output_Connections.Output([Output_file], Request, f"Subdomain Certificate Search for {Query}", self.Plugin_Name.lower())
-
-                                        else:
-                                            Output_Connections.Output([Output_file], Request, f"self.Domain Certificate Search for {Query}", self.Plugin_Name.lower())
+                                    if Subdomains:
+                                        Output_Connections.Output([Output_file], Request, f"Subdomain Certificate Search for {Query}", self.Plugin_Name.lower())
 
                                     else:
-                                        logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create output file. File may already exist.")
+                                        Output_Connections.Output([Output_file], Request, f"self.Domain Certificate Search for {Query}", self.Plugin_Name.lower())
 
                                 else:
-                                    logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to match regular expression.")
+                                    logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create output file. File may already exist.")
 
-                            except:
-                                logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create file.")
+                            else:
+                                logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to match regular expression.")
 
-                    else:
-                        logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - No response.")
+                        except:
+                            logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create file.")
 
                 else:
-                    logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Query does not exist.")
+                    logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - No response.")
 
             Cached_Data_Object.Write_Cache(Data_to_Cache)
 

@@ -34,16 +34,21 @@ class Plugin_Search:
                     for DNS_Item in DNS_Info:
                         Query = DNS_Item['base_domain']
                         Output_Dict = Common.JSON_Handler(DNS_Item).Dump_JSON()
-                        Link = "https://www." + Query
+                        Link = f"https://www.{Query}"
                         Title = "DNS Information for " + DNS_Item['base_domain']
 
                         if Link not in Data_to_Cache and Link not in Cached_Data:
                             Responses = Common.Request_Handler(Link, Filter=True, Host=f"https://www.{Query}")
                             Response = Responses["Filtered"]
                             Main_File = General.Main_File_Create(Directory, self.Plugin_Name, Output_Dict, Query, self.The_File_Extensions["Main"])
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, Title, self.The_File_Extensions["Query"])
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                self.Plugin_Name,
+                                Response,
+                                Title,
+                                self.The_File_Extensions["Query"],
+                            ):
                                 Output_Connections = General.Connections(Query, self.Plugin_Name, Query, self.Result_Type, self.Task_ID, self.Concat_Plugin_Name)
                                 Output_Connections.Output([Main_File, Output_file], Link, Title, self.Concat_Plugin_Name)
                                 Data_to_Cache.append(Link)
@@ -54,16 +59,21 @@ class Plugin_Search:
                 else:
                     Query = DNS_Info['base_domain']
                     Output_Dict = Common.JSON_Handler(Query).Dump_JSON()
-                    Link = "https://www." + Query
-                    Title = "DNS Information for " + Query
+                    Link = f"https://www.{Query}"
+                    Title = f"DNS Information for {Query}"
 
                     if Link not in Data_to_Cache and Link not in Cached_Data:
                         Responses = Common.Request_Handler(Link, Filter=True, Host=f"https://www.{Query}")
                         Response = Responses["Filtered"]
                         Main_File = General.Main_File_Create(Directory, self.Plugin_Name, Output_Dict, Query, self.The_File_Extensions["Main"])
-                        Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, Title, self.The_File_Extensions["Query"])
-
-                        if Output_file:
+                        if Output_file := General.Create_Query_Results_Output_File(
+                            Directory,
+                            Query,
+                            self.Plugin_Name,
+                            Response,
+                            Title,
+                            self.The_File_Extensions["Query"],
+                        ):
                             Output_Connections = General.Connections(Query, self.Plugin_Name, Query, self.Result_Type, self.Task_ID, self.Concat_Plugin_Name)
                             Output_Connections.Output([Main_File, Output_file], Link, Title, self.Concat_Plugin_Name)
                             Data_to_Cache.append(Link)

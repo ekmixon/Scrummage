@@ -20,9 +20,9 @@ class Plugin_Search:
 
     def Load_Configuration(self):
         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Loading configuration data.")
-        Result = Common.Configuration(Input=True).Load_Configuration(Object="bitcoinabuse", Details_to_Load=["api_key"])
-
-        if Result:
+        if Result := Common.Configuration(Input=True).Load_Configuration(
+            Object="bitcoinabuse", Details_to_Load=["api_key"]
+        ):
             return Result
 
         else:
@@ -31,7 +31,7 @@ class Plugin_Search:
     def Transaction_Search(self):
 
         try:
-            Local_Plugin_Name = self.Plugin_Name + "-Transaction-Search"
+            Local_Plugin_Name = f"{self.Plugin_Name}-Transaction-Search"
             Data_to_Cache = []
             Directory = General.Make_Directory(self.Plugin_Name.lower())
             logger = logging.getLogger()
@@ -83,9 +83,14 @@ class Plugin_Search:
                                 if Query_URL not in Cached_Data and Query_URL not in Data_to_Cache and Current_Step < int(self.Limit):
                                     Transaction_Responses = Common.Request_Handler(Query_URL, Filter=True, Host=f"https://www.{self.Domain}")
                                     Transaction_Response = Transaction_Responses["Filtered"]
-                                    Output_file = General.Create_Query_Results_Output_File(Directory, Query, Local_Plugin_Name, Transaction_Response, Transaction, self.The_File_Extension)
-
-                                    if Output_file:
+                                    if Output_file := General.Create_Query_Results_Output_File(
+                                        Directory,
+                                        Query,
+                                        Local_Plugin_Name,
+                                        Transaction_Response,
+                                        Transaction,
+                                        self.The_File_Extension,
+                                    ):
                                         Output_Connections.Output([Output_file], Query_URL, General.Get_Title(Query_URL), self.Plugin_Name.lower())
                                         Data_to_Cache.append(Query_URL)
 
@@ -107,9 +112,14 @@ class Plugin_Search:
                     if "Whoops, looks like something went wrong." not in Transaction_Response and Query_URL not in Cached_Data and Query_URL not in Data_to_Cache:
                         Transaction_Responses = Common.Request_Handler(Query_URL, Filter=True, Host=f"https://{self.Monero_Domain}")
                         Transaction_Response = Transaction_Responses["Filtered"]
-                        Output_file = General.Create_Query_Results_Output_File(Directory, Query, Local_Plugin_Name, Transaction_Response, Query, self.The_File_Extension)
-
-                        if Output_file:
+                        if Output_file := General.Create_Query_Results_Output_File(
+                            Directory,
+                            Query,
+                            Local_Plugin_Name,
+                            Transaction_Response,
+                            Query,
+                            self.The_File_Extension,
+                        ):
                             Output_Connections = General.Connections(Query, Local_Plugin_Name, self.Monero_Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
                             Output_Connections.Output([Output_file], Query_URL, General.Get_Title(Query_URL, Requests=True), self.Plugin_Name.lower())
                             Data_to_Cache.append(Query_URL)
@@ -125,7 +135,7 @@ class Plugin_Search:
     def Address_Search(self):
 
         try:
-            Local_Plugin_Name = self.Plugin_Name + "-Address-Search"
+            Local_Plugin_Name = f"{self.Plugin_Name}-Address-Search"
             Data_to_Cache = []
             Directory = General.Make_Directory(self.Plugin_Name.lower())
             logger = logging.getLogger()
@@ -175,9 +185,14 @@ class Plugin_Search:
                             if Query_URL not in Cached_Data and Query_URL not in Data_to_Cache and Current_Step < int(self.Limit):
                                 Transaction_Responses = Common.Request_Handler(Query_URL, Filter=True, Host=f"https://www.{self.Domain}")
                                 Transaction_Response = Transaction_Responses["Filtered"]
-                                Output_file = General.Create_Query_Results_Output_File(Directory, Query, Local_Plugin_Name, Transaction_Response, Transaction, self.The_File_Extension)
-
-                                if Output_file:
+                                if Output_file := General.Create_Query_Results_Output_File(
+                                    Directory,
+                                    Query,
+                                    Local_Plugin_Name,
+                                    Transaction_Response,
+                                    Transaction,
+                                    self.The_File_Extension,
+                                ):
                                     Output_Connections.Output([Output_file], Query_URL, General.Get_Title(Query_URL), self.Plugin_Name.lower())
                                     Data_to_Cache.append(Query_URL)
 
@@ -200,7 +215,7 @@ class Plugin_Search:
     def Address_Abuse_Search(self):
 
         try:
-            Local_Plugin_Name = self.Plugin_Name + "-Address-Abuse-Search"
+            Local_Plugin_Name = f"{self.Plugin_Name}-Address-Abuse-Search"
             Data_to_Cache = []
             Directory = General.Make_Directory(self.Plugin_Name.lower())
             logger = logging.getLogger()
@@ -229,12 +244,17 @@ class Plugin_Search:
                     Output_Connections = General.Connections(Query, Local_Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
 
                     if "count" in JSON_Response and JSON_Response["count"] > 0:
-                        
+
                         if HTML_URL not in Cached_Data and HTML_URL not in Data_to_Cache:
                             Title = f"Bitcoin Abuse | {Query}"
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, Local_Plugin_Name, Filtered_Response, Title, self.The_File_Extension)
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                Local_Plugin_Name,
+                                Filtered_Response,
+                                Title,
+                                self.The_File_Extension,
+                            ):
                                 Output_Connections.Output([Main_File, Output_file], HTML_URL, Title, self.Plugin_Name.lower())
                                 Data_to_Cache.append(HTML_URL)
 
@@ -243,6 +263,6 @@ class Plugin_Search:
 
                     else:
                         logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Invalid response.")
-        
+
         except Exception as e:
             logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - {str(e)}")

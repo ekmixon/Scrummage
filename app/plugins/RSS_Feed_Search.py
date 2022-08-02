@@ -6,7 +6,7 @@ class Plugin_Search:
     def __init__(self, Query_List, Task_ID, Limit=10):
         self.The_File_Extension = ".html"
         self.Plugin_Name = "RSS"
-        self.Logging_Plugin_Name = self.Plugin_Name + " Feed Search"
+        self.Logging_Plugin_Name = f"{self.Plugin_Name} Feed Search"
         self.Result_Type = "News Report"
         self.Limit = General.Get_Limit(Limit)
         self.Task_ID = Task_ID
@@ -27,10 +27,8 @@ class Plugin_Search:
             try:
                 File_Dir = os.path.dirname(os.path.realpath('__file__'))
                 Configuration_File = os.path.join(File_Dir, 'plugins/common/config/RSS_Feeds.txt')
-                Current_File = open(Configuration_File, "r") # Open the provided file and retrieve each client to test.
-                URLs = Current_File.read().splitlines()
-                Current_File.close()
-
+                with open(Configuration_File, "r") as Current_File:
+                    URLs = Current_File.read().splitlines()
             except:
                 logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Please provide a valid RSS_Feeds file, failed to open the file which contains the data to search for.")
 
@@ -57,7 +55,7 @@ class Plugin_Search:
 
                             if Feed.link not in Cached_Data and Feed.link not in Data_to_Cache and Current_Step < int(self.Limit):
                                 Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Feed.description, File_Link, self.The_File_Extension)
-                                Title = "RSS Feed | " + General.Get_Title(Feed.link)
+                                Title = f"RSS Feed | {General.Get_Title(Feed.link)}"
 
                                 if Output_file:
                                     Output_Connections = General.Connections(Query, self.Plugin_Name, Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())

@@ -20,9 +20,9 @@ class Plugin_Search:
 
     def Load_Configuration(self):
         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Loading configuration data.")
-        Result = Common.Configuration(Input=True).Load_Configuration(Object=self.Concat_Plugin_Name, Details_to_Load=["api_key"])
-
-        if Result:
+        if Result := Common.Configuration(Input=True).Load_Configuration(
+            Object=self.Concat_Plugin_Name, Details_to_Load=["api_key"]
+        ):
             return Result
 
         else:
@@ -47,23 +47,26 @@ class Plugin_Search:
                 logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to set API key, make sure it is set in the configuration file.")
 
             if self.Type == "Email":
-                Local_Plugin_Name = self.Plugin_Name + " " + self.Type
+                Local_Plugin_Name = f"{self.Plugin_Name} {self.Type}"
                 Cached_Data_Object = General.Cache(Directory, Local_Plugin_Name)
                 Cached_Data = Cached_Data_Object.Get_Cache()
 
                 for Query in self.Query_List:
-                    Query_Response = pyhibp.get_pastes(email_address=Query)
-
-                    if Query_Response:
+                    if Query_Response := pyhibp.get_pastes(email_address=Query):
                         Current_Domain = Query_Response[0]["Source"]
                         ID = Query_Response[0]["Id"]
                         Link = f"https://www.{Current_Domain}.com/{ID}"
                         JSON_Query_Response = Common.JSON_Handler(Query_Response).Dump_JSON()
 
                         if Link not in Cached_Data and Link not in Data_to_Cache:
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, JSON_Query_Response, "email", self.The_File_Extension)
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                self.Plugin_Name,
+                                JSON_Query_Response,
+                                "email",
+                                self.The_File_Extension,
+                            ):
                                 Output_Connections = General.Connections(Query, Local_Plugin_Name, self.Domain, self.Result_Type_1, self.Task_ID, Local_Plugin_Name.lower())
                                 Output_Connections.Output([Output_file], Link, General.Get_Title(Link), self.Concat_Plugin_Name)
                                 Data_to_Cache.append(Link)
@@ -77,22 +80,27 @@ class Plugin_Search:
                 Cached_Data_Object.Write_Cache(Data_to_Cache)
 
             elif self.Type == "Breach":
-                Local_Plugin_Name = self.Plugin_Name + " " + self.Type
+                Local_Plugin_Name = f"{self.Plugin_Name} {self.Type}"
                 Cached_Data_Object = General.Cache(Directory, Local_Plugin_Name)
                 Cached_Data = Cached_Data_Object.Get_Cache()
 
                 for Query in self.Query_List:
-                    Query_Response = pyhibp.get_single_breach(breach_name=Query)
-
-                    if Query_Response:
+                    if Query_Response := pyhibp.get_single_breach(
+                        breach_name=Query
+                    ):
                         Current_Domain = Query_Response["Domain"]
                         Link = f"https://www.{Current_Domain}.com/"
                         JSON_Query_Response = Common.JSON_Handler(Query_Response).Dump_JSON()
 
                         if Link not in Cached_Data and Link not in Data_to_Cache:
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, Local_Plugin_Name, JSON_Query_Response, "breach", self.The_File_Extension)
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                Local_Plugin_Name,
+                                JSON_Query_Response,
+                                "breach",
+                                self.The_File_Extension,
+                            ):
                                 Output_Connections = General.Connections(Query, Local_Plugin_Name, self.Domain, self.Result_Type_2, self.Task_ID, Local_Plugin_Name.lower())
                                 Output_Connections.Output([Output_file], Link, General.Get_Title(Link), self.Concat_Plugin_Name)
                                 Data_to_Cache.append(Link)
@@ -106,20 +114,23 @@ class Plugin_Search:
                 Cached_Data_Object.Write_Cache(Data_to_Cache)
 
             elif self.Type == "Password":
-                Local_Plugin_Name = self.Plugin_Name + " " + self.Type
+                Local_Plugin_Name = f"{self.Plugin_Name} {self.Type}"
                 Cached_Data_Object = General.Cache(Directory, Local_Plugin_Name)
                 Cached_Data = Cached_Data_Object.Get_Cache()
 
                 for Query in self.Query_List:
-                    Query_Response = pw.is_password_breached(password=Query)
-
-                    if Query_Response:
+                    if Query_Response := pw.is_password_breached(password=Query):
                         Link = f"https://{self.Domain}/Passwords?{Query}"
 
                         if Link not in Cached_Data and Link not in Data_to_Cache:
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, str(Query_Response), "password", ".txt")
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                self.Plugin_Name,
+                                str(Query_Response),
+                                "password",
+                                ".txt",
+                            ):
                                 Output_Connections = General.Connections(Query, Local_Plugin_Name, self.Domain, self.Result_Type_2, self.Task_ID, Local_Plugin_Name.lower())
                                 Output_Connections.Output([Output_file], Link, General.Get_Title(Link), self.Concat_Plugin_Name)
                                 Data_to_Cache.append(Link)
@@ -133,14 +144,14 @@ class Plugin_Search:
                 Cached_Data_Object.Write_Cache(Data_to_Cache)
 
             elif self.Type == "Account":
-                Local_Plugin_Name = self.Plugin_Name + " " + self.Type
+                Local_Plugin_Name = f"{self.Plugin_Name} {self.Type}"
                 Cached_Data_Object = General.Cache(Directory, Local_Plugin_Name)
                 Cached_Data = Cached_Data_Object.Get_Cache()
 
                 for Query in self.Query_List:
-                    Query_Response = pyhibp.get_account_breaches(account=Query, truncate_response=True)
-
-                    if Query_Response:
+                    if Query_Response := pyhibp.get_account_breaches(
+                        account=Query, truncate_response=True
+                    ):
                         Current_Step = 0
 
                         for Response in Query_Response:
@@ -149,9 +160,14 @@ class Plugin_Search:
                             Link = "https://" + Current_Response['self.Domain']
 
                             if Current_Response['self.Domain'] not in Cached_Data and Current_Response['self.Domain'] not in Data_to_Cache and Current_Step < int(self.Limit):
-                                Output_file = General.Create_Query_Results_Output_File(Directory, Query, Local_Plugin_Name, JSON_Query_Response, "account", self.The_File_Extension)
-
-                                if Output_file:
+                                if Output_file := General.Create_Query_Results_Output_File(
+                                    Directory,
+                                    Query,
+                                    Local_Plugin_Name,
+                                    JSON_Query_Response,
+                                    "account",
+                                    self.The_File_Extension,
+                                ):
                                     Output_Connections = General.Connections(Query, Local_Plugin_Name, Current_Response['self.Domain'], self.Result_Type_1, self.Task_ID, Local_Plugin_Name.lower())
                                     Output_Connections.Output([Output_file], Link, General.Get_Title(Link), self.Concat_Plugin_Name)
                                     Data_to_Cache.append(Current_Response['self.Domain'])

@@ -30,12 +30,7 @@ class Plugin_Search:
 
             def Call_API_and_Output(self, Page=1, Custom_Limit=10):
 
-                if type(Custom_Limit) == int:
-                    Current_Limit = Custom_Limit
-
-                else:
-                    Current_Limit = self.Limit
-                
+                Current_Limit = Custom_Limit if type(Custom_Limit) == int else self.Limit
                 URL = f"https://{self.Domain}/api/search?query={self.Query}&page={str(Page)}"
                 Response = Common.Request_Handler(URL)
                 JSON_Object = Common.JSON_Handler(Response)
@@ -85,7 +80,7 @@ class Plugin_Search:
 
                         Current_Page += 1
                         Tally += 20
-                
+
             self.Cached_Data_Object.Write_Cache(self.Data_to_Cache)
 
         except Exception as e:

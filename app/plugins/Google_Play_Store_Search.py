@@ -47,13 +47,18 @@ class Plugin_Search:
                         Result_URL = f"https://{self.Domain}{Result}"
                         Item = Item.replace("u003d", "")
                         Title = f"Play Store | {Item}"
-                        
+
                         if Result_URL not in Cached_Data and Result_URL not in Data_to_Cache and Current_Step < int(self.Limit):
                             Play_Store_Responses = Common.Request_Handler(Result_URL, Filter=True, Host=f"https://{self.Domain}")
                             Play_Store_Response = Play_Store_Responses["Filtered"]
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Play_Store_Response, Item, self.The_File_Extensions["Query"])
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                self.Plugin_Name,
+                                Play_Store_Response,
+                                Item,
+                                self.The_File_Extensions["Query"],
+                            ):
                                 Output_Connections.Output([Main_File, Output_file], Result_URL, Title, self.Concat_Plugin_Name)
                                 Data_to_Cache.append(Result_URL)
 

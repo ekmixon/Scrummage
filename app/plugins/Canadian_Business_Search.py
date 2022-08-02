@@ -50,9 +50,14 @@ class Plugin_Search:
                                 Response = Responses["Filtered"]
 
                                 if Main_URL not in Cached_Data and Main_URL not in Data_to_Cache:
-                                    Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, General.Get_Title(Main_URL), self.The_File_Extensions["Query"])
-
-                                    if Output_file:
+                                    if Output_file := General.Create_Query_Results_Output_File(
+                                        Directory,
+                                        Query,
+                                        self.Plugin_Name,
+                                        Response,
+                                        General.Get_Title(Main_URL),
+                                        self.The_File_Extensions["Query"],
+                                    ):
                                         Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain.strip("beta."), self.Result_Type, self.Task_ID, self.Plugin_Name)
                                         Output_Connections.Output([Main_Output_File, Output_file], Main_URL, f"Canadian Business Number {Query}", self.Concat_Plugin_Name)
                                         Data_to_Cache.append(Main_URL)
@@ -71,7 +76,11 @@ class Plugin_Search:
                         Iterator = "page=0"
 
                         while (self.Limit > Total_Results) and Iterator is not None:
-                            Main_URL = 'https://searchapi.mrasservice.ca/Search/api/v1/search?fq=keyword:%7B' + urllib.parse.quote(Query) + f'%7D+Status_State:Active&lang=en&queryaction=fieldquery&sortfield=Company_Name&sortorder=asc&{Iterator}'
+                            Main_URL = (
+                                f'https://searchapi.mrasservice.ca/Search/api/v1/search?fq=keyword:%7B{urllib.parse.quote(Query)}'
+                                + f'%7D+Status_State:Active&lang=en&queryaction=fieldquery&sortfield=Company_Name&sortorder=asc&{Iterator}'
+                            )
+
                             Response = Common.Request_Handler(Main_URL)
                             JSON_Object = Common.JSON_Handler(Response)
                             JSON_Response = JSON_Object.To_JSON_Loads()
@@ -101,9 +110,14 @@ class Plugin_Search:
                                         if Full_CCN_URL not in Cached_Data and Full_CCN_URL not in Data_to_Cache and Current_Step < int(self.Limit):
                                             Current_Responses = Common.Request_Handler(Full_CCN_URL, Filter=True, Host=f"https://{self.Domain}")
                                             Current_Response = Current_Responses["Filtered"]
-                                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, str(Current_Response), CCN.replace(' ', '-'), self.The_File_Extensions["Query"])
-
-                                            if Output_file:
+                                            if Output_file := General.Create_Query_Results_Output_File(
+                                                Directory,
+                                                Query,
+                                                self.Plugin_Name,
+                                                str(Current_Response),
+                                                CCN.replace(' ', '-'),
+                                                self.The_File_Extensions["Query"],
+                                            ):
                                                 Output_Connections.Output([Main_File, Output_file], Full_CCN_URL, f"Canadian Business Number {CBN} for Query {Query}", self.Concat_Plugin_Name)
                                                 Data_to_Cache.append(Full_CCN_URL)
 

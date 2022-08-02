@@ -43,9 +43,14 @@ class Plugin_Search:
                     Current_Doing_Business_Response = Current_Doing_Business_Responses["Filtered"]
 
                     if Item_URL not in Cached_Data and Item_URL not in Data_to_Cache:
-                        Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Current_Doing_Business_Response, Query, self.The_File_Extensions["Query"])
-
-                        if Output_file:
+                        if Output_file := General.Create_Query_Results_Output_File(
+                            Directory,
+                            Query,
+                            self.Plugin_Name,
+                            Current_Doing_Business_Response,
+                            Query,
+                            self.The_File_Extensions["Query"],
+                        ):
                             Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Concat_Plugin_Name)
                             Output_Connections.Output([Main_File, Output_file], Item_URL, Title, self.Concat_Plugin_Name)
                             Data_to_Cache.append(Item_URL)

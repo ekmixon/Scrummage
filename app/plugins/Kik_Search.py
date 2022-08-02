@@ -38,9 +38,13 @@ class Plugin_Search:
                     Title = f"{self.Plugin_Name} | {Kik_Item_Regex.group(1)}"
 
                     if Main_URL not in Cached_Data and Main_URL not in Data_to_Cache:
-                        Output_file = General.Main_File_Create(Directory, self.Plugin_Name, Filtered_Response, Query, self.The_File_Extension)
-
-                        if Output_file:
+                        if Output_file := General.Main_File_Create(
+                            Directory,
+                            self.Plugin_Name,
+                            Filtered_Response,
+                            Query,
+                            self.The_File_Extension,
+                        ):
                             Output_Connections.Output([Output_file], Main_URL, Title, self.Plugin_Name.lower())
                             Data_to_Cache.append(Main_URL)
 

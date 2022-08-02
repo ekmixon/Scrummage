@@ -15,9 +15,10 @@ class Plugin_Search:
 
     def Load_Configuration(self):
         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Loading configuration data.")
-        Result = Common.Configuration(Input=True).Load_Configuration(Object=self.Plugin_Name.lower(), Details_to_Load=["client_id", "client_secret"])
-
-        if Result:
+        if Result := Common.Configuration(Input=True).Load_Configuration(
+            Object=self.Plugin_Name.lower(),
+            Details_to_Load=["client_id", "client_secret"],
+        ):
             return Result
 
         else:
@@ -67,9 +68,14 @@ class Plugin_Search:
                                 if Naver_URL not in Cached_Data and Naver_URL not in Data_to_Cache:
                                     Naver_Item_Responses = Common.Request_Handler(Naver_URL, Filter=True, Host=f"https://www.{self.Domain}")
                                     Naver_Item_Response = Naver_Item_Responses["Filtered"]
-                                    Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Naver_Item_Response, Naver_URL, self.The_File_Extensions["Query"])
-
-                                    if Output_file:
+                                    if Output_file := General.Create_Query_Results_Output_File(
+                                        Directory,
+                                        Query,
+                                        self.Plugin_Name,
+                                        Naver_Item_Response,
+                                        Naver_URL,
+                                        self.The_File_Extensions["Query"],
+                                    ):
                                         Output_Connections.Output([Main_File, Output_file], Naver_URL, Title, self.Plugin_Name.lower())
                                         Data_to_Cache.append(Naver_URL)
 

@@ -41,12 +41,14 @@ class Plugin_Search:
                 if self.Type == "Tor":
                     self.Tor_Pull_URL = self.Tor_General_URL + Query
                     Responses = Common.Request_Handler(self.Tor_Pull_URL, Filter=True, Host=f"https://{self.Domain}", Scrape_Regex_URL=self.Tor_Scrape_Regex_URL)
-                    Tor_Scrape_URLs = Responses["Scraped"]
-
-                    if Tor_Scrape_URLs:
-                        Output_file = General.Main_File_Create(Directory, self.Tor_Plugin_Name.lower(), Responses["Filtered"], Query, self.The_File_Extension)
-
-                        if Output_file:
+                    if Tor_Scrape_URLs := Responses["Scraped"]:
+                        if Output_file := General.Main_File_Create(
+                            Directory,
+                            self.Tor_Plugin_Name.lower(),
+                            Responses["Filtered"],
+                            Query,
+                            self.The_File_Extension,
+                        ):
                             Current_Step = 0
                             Output_Connections = General.Connections(Query, self.Tor_Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
 
@@ -68,12 +70,14 @@ class Plugin_Search:
                 elif self.Type == "I2P":
                     self.I2P_Pull_URL = self.I2P_General_URL + Query
                     Responses = Common.Request_Handler(self.I2P_Pull_URL, Filter=True, Host=f"https://{self.Domain}", Scrape_Regex_URL=self.I2P_Scrape_Regex_URL)
-                    I2P_Scrape_URLs = Responses["Scraped"]
-
-                    if I2P_Scrape_URLs:
-                        Output_file = General.Main_File_Create(Directory, self.I2P_Plugin_Name.lower(), Responses["Filtered"], Query, self.The_File_Extension)
-
-                        if Output_file:
+                    if I2P_Scrape_URLs := Responses["Scraped"]:
+                        if Output_file := General.Main_File_Create(
+                            Directory,
+                            self.I2P_Plugin_Name.lower(),
+                            Responses["Filtered"],
+                            Query,
+                            self.The_File_Extension,
+                        ):
                             Current_Step = 0
                             Output_Connections = General.Connections(Query, self.I2P_Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
 

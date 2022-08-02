@@ -33,20 +33,23 @@ class Plugin_Search:
                 Error_Regex = Common.Regex_Handler(Response, Custom_Regex=r"Correct\sthe\sfollowing\serrors")
                 Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
 
-                if not Error_Regex:
-
-                    if BSB_Search_URL not in Cached_Data and BSB_Search_URL not in Data_to_Cache:
-                        Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, Query, self.The_File_Extension)
-
-                        if Output_file:
-                            Output_Connections.Output([Output_file], BSB_Search_URL, General.Get_Title(BSB_Search_URL), self.Plugin_Name.lower())
-                            Data_to_Cache.append(BSB_Search_URL)
-
-                        else:
-                            logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create output file. File may already exist.")
-
-                else:
+                if Error_Regex:
                     logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Query returned error, probably does not exist.")
+
+                elif BSB_Search_URL not in Cached_Data and BSB_Search_URL not in Data_to_Cache:
+                    if Output_file := General.Create_Query_Results_Output_File(
+                        Directory,
+                        Query,
+                        self.Plugin_Name,
+                        Response,
+                        Query,
+                        self.The_File_Extension,
+                    ):
+                        Output_Connections.Output([Output_file], BSB_Search_URL, General.Get_Title(BSB_Search_URL), self.Plugin_Name.lower())
+                        Data_to_Cache.append(BSB_Search_URL)
+
+                    else:
+                        logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create output file. File may already exist.")
 
             Cached_Data_Object.Write_Cache(Data_to_Cache)
 

@@ -22,12 +22,7 @@ class Plugin_Search:
                 Configuration_Data = Common.JSON_Handler(JSON_File).To_JSON_Load()
                 Pinterest_Details = Configuration_Data["inputs"][self.Plugin_Name.lower()]
 
-                if Pinterest_Details['oauth_token']:
-                    return Pinterest_Details['oauth_token']
-
-                else:
-                    return None
-
+                return Pinterest_Details['oauth_token'] or None
         except:
             logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to load location details.")
 
@@ -48,8 +43,9 @@ class Plugin_Search:
             for Query in self.Query_List:
 
                 if self.Type == "Pin":
-                    Local_Plugin_Name = self.Plugin_Name + " " + self.Type
-                    Request_URL = f"https://api.{self.Domain}/v1/pins/{Query}/?access_token=" + Load_Configuration() + "&fields=id%2Clink%2Cnote%2Curl%2Ccreated_at%2Cmedia%2Coriginal_link%2Cmetadata%2Ccounts%2Ccolor%2Cboard%2Cattribution"
+                    Local_Plugin_Name = f"{self.Plugin_Name} {self.Type}"
+                    Request_URL = f"https://api.{self.Domain}/v1/pins/{Query}/?access_token={Load_Configuration()}&fields=id%2Clink%2Cnote%2Curl%2Ccreated_at%2Cmedia%2Coriginal_link%2Cmetadata%2Ccounts%2Ccolor%2Cboard%2Cattribution"
+
                     Search_Response = Common.Request_Handler(Request_URL)
                     JSON_Object = Common.JSON_Handler(Search_Response)
                     Search_Response = JSON_Object.To_JSON_Loads()
@@ -62,9 +58,14 @@ class Plugin_Search:
                         Search_Result_Response = Common.Request_Handler(Result_URL)
 
                         if Result_URL not in Cached_Data and Result_URL not in Data_to_Cache:
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, Local_Plugin_Name, Search_Result_Response, Result_Title, self.The_File_Extensions["Query"])
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                Local_Plugin_Name,
+                                Search_Result_Response,
+                                Result_Title,
+                                self.The_File_Extensions["Query"],
+                            ):
                                 Output_Connections = General.Connections(Query, Local_Plugin_Name, self.Domain, "Social Media - Media", self.Task_ID, Local_Plugin_Name.lower())
                                 Output_Connections.Output([Main_File, Output_file], Result_URL, Result_Title, self.Plugin_Name.lower())
                                 Data_to_Cache.append(Result_URL)
@@ -76,12 +77,13 @@ class Plugin_Search:
                         logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create output file. File may already exist.")
 
                 elif self.Type == "Board":
-                    Local_Plugin_Name = self.Plugin_Name + " " + self.Type
-                    Request_URL = "https://api.pinterest.com/v1/boards/" + Query + "/pins/?access_token=" + Load_Configuration() + "&fields=id%2Clink%2Cnote%2Curl%2Coriginal_link%2Cmetadata%2Cmedia%2Cimage%2Ccreator%2Ccreated_at%2Ccounts%2Ccolor%2Cboard%2Cattribution&limit=" + str(self.Limit) + ""
+                    Local_Plugin_Name = f"{self.Plugin_Name} {self.Type}"
+                    Request_URL = f"https://api.pinterest.com/v1/boards/{Query}/pins/?access_token={Load_Configuration()}&fields=id%2Clink%2Cnote%2Curl%2Coriginal_link%2Cmetadata%2Cmedia%2Cimage%2Ccreator%2Ccreated_at%2Ccounts%2Ccolor%2Cboard%2Cattribution&limit={str(self.Limit)}"
+
                     Search_Response = Common.Request_Handler(Request_URL)
                     JSON_Object = Common.JSON_Handler(Search_Response)
                     Search_Response = JSON_Object.To_JSON_Loads()
-                    
+
                     if Search_Response.get('message') != "You have exceeded your rate limit. Try again later.":
                         JSON_Response = JSON_Object.Dump_JSON()
                         Main_File = General.Main_File_Create(Directory, self.Plugin_Name, JSON_Response, Query, self.The_File_Extensions["Main"])
@@ -94,9 +96,14 @@ class Plugin_Search:
                             Search_Result_Response = Common.Request_Handler(Result_URL)
 
                             if Result_URL not in Cached_Data and Result_URL not in Data_to_Cache and Current_Step < int(self.Limit):
-                                Output_file = General.Create_Query_Results_Output_File(Directory, Query, Local_Plugin_Name, Search_Result_Response, Result_Title, self.The_File_Extensions["Query"])
-
-                                if Output_file:
+                                if Output_file := General.Create_Query_Results_Output_File(
+                                    Directory,
+                                    Query,
+                                    Local_Plugin_Name,
+                                    Search_Result_Response,
+                                    Result_Title,
+                                    self.The_File_Extensions["Query"],
+                                ):
                                     Output_Connections.Output([Main_File, Output_file], Result_URL, Result_Title, self.Plugin_Name.lower())
                                     Data_to_Cache.append(Result_URL)
                                     Current_Step += 1

@@ -14,9 +14,9 @@ class Plugin_Search:
 
     def Load_Configuration(self):
         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Loading configuration data.")
-        Result = Common.Configuration(Input=True).Load_Configuration(Object=self.Plugin_Name.lower(), Details_to_Load=["api_key"])
-
-        if Result:
+        if Result := Common.Configuration(Input=True).Load_Configuration(
+            Object=self.Plugin_Name.lower(), Details_to_Load=["api_key"]
+        ):
             return Result
 
         else:
@@ -52,21 +52,24 @@ class Plugin_Search:
                     Main_File = General.Main_File_Create(Directory, self.Plugin_Name, JSON_Output_Response, Query, self.The_File_Extensions["Main"])
                     Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
 
-                    if "error" not in JSON_Response:
-                        
-                        if API_URL not in Cached_Data and API_URL not in Data_to_Cache:
-                            Title = f"{self.Plugin_Name} | {Query}"
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, Title, self.The_File_Extensions["Query"])
-
-                            if Output_file:
-                                Output_Connections.Output([Main_File, Output_file], API_URL, Title, self.Plugin_Name.lower())
-                                Data_to_Cache.append(API_URL)
-
-                            else:
-                                logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create output file. File may already exist.")
-
-                    else:
+                    if "error" in JSON_Response:
                         logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Invalid response.")
+
+                    elif API_URL not in Cached_Data and API_URL not in Data_to_Cache:
+                        Title = f"{self.Plugin_Name} | {Query}"
+                        if Output_file := General.Create_Query_Results_Output_File(
+                            Directory,
+                            Query,
+                            self.Plugin_Name,
+                            Response,
+                            Title,
+                            self.The_File_Extensions["Query"],
+                        ):
+                            Output_Connections.Output([Main_File, Output_file], API_URL, Title, self.Plugin_Name.lower())
+                            Data_to_Cache.append(API_URL)
+
+                        else:
+                            logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create output file. File may already exist.")
 
             Cached_Data_Object.Write_Cache(Data_to_Cache)
 

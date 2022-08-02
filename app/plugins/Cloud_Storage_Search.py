@@ -35,9 +35,9 @@ class Plugin_Search:
                 Responses = Common.Request_Handler(Main_URL, Method="POST", Data=Data, Filter=True, Host=f"https://{self.Domain}")
                 Response = Responses["Regular"]
                 Filtered_Response = Responses["Filtered"]
-                Regex = Common.Regex_Handler(Response, Custom_Regex=self.Result_Regex, Findall=True)
-
-                if Regex:
+                if Regex := Common.Regex_Handler(
+                    Response, Custom_Regex=self.Result_Regex, Findall=True
+                ):
                     Current_Step = 0
 
                     for Current_URL, File in Regex:
@@ -52,9 +52,14 @@ class Plugin_Search:
 
                         if Current_URL not in Cached_Data and Current_URL not in Data_to_Cache and Current_Step < int(self.Limit):
                             Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Concat_Plugin_Name)
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Filtered_Response, Title, self.The_File_Extension)
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                self.Plugin_Name,
+                                Filtered_Response,
+                                Title,
+                                self.The_File_Extension,
+                            ):
                                 Output_Connections.Output([Output_file], Current_URL, Title, self.Concat_Plugin_Name)
                                 Data_to_Cache.append(Current_URL)
 

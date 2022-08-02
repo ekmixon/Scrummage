@@ -27,39 +27,40 @@ class Plugin_Search:
             Cached_Data = Cached_Data_Object.Get_Cache()
 
             for Query in self.Query_List:
-                CRT_Regex = Common.Regex_Handler(Query, Type="Domain")
-
-                if CRT_Regex:
+                if CRT_Regex := Common.Regex_Handler(Query, Type="Domain"):
                     Request = f"https://{self.Domain}/?q={Query}"
                     Responses = Common.Request_Handler(Request, Accept_XML=True, Accept_Language_EN_US=True, Filter=True, Host=f"https://{self.Domain}")
                     Response = Responses["Regular"]
                     Filtered_Response = Responses["Filtered"]
 
-                    if "<TD class=\"outer\"><I>None found</I></TD>" not in Response:
+                    if "<TD class=\"outer\"><I>None found</I></TD>" in Response:
+                        logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Query does not exist.")
 
-                        if Request not in Cached_Data and Request not in Data_to_Cache:
+                    elif Request not in Cached_Data and Request not in Data_to_Cache:
 
-                            try:
+                        try:
 
-                                if CRT_Regex:
-                                    Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name.lower(), Filtered_Response, CRT_Regex.group(1), self.The_File_Extension)
-
-                                    if Output_file:
-                                        Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
-                                        Output_Connections.Output([Output_file], Request, f"Subdomain Certificate Search for {Query}", self.Plugin_Name.lower())
-                                        Data_to_Cache.append(Request)
-
-                                    else:
-                                        logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create output file. File may already exist.")
+                            if CRT_Regex:
+                                if Output_file := General.Create_Query_Results_Output_File(
+                                    Directory,
+                                    Query,
+                                    self.Plugin_Name.lower(),
+                                    Filtered_Response,
+                                    CRT_Regex.group(1),
+                                    self.The_File_Extension,
+                                ):
+                                    Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
+                                    Output_Connections.Output([Output_file], Request, f"Subdomain Certificate Search for {Query}", self.Plugin_Name.lower())
+                                    Data_to_Cache.append(Request)
 
                                 else:
-                                    logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to match regular expression.")
+                                    logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create output file. File may already exist.")
 
-                            except:
-                                logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create file.")
+                            else:
+                                logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to match regular expression.")
 
-                    else:
-                        logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Query does not exist.")
+                        except:
+                            logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to create file.")
 
                 else:
                     logging.warning(f"{Common.Date()} - {self.Logging_Plugin_Name} - Failed to match regular expression.")

@@ -36,9 +36,14 @@ class Plugin_Search:
 
                     if "We could not found any matches about your search string" not in Response and URL not in Cached_Data and URL not in Data_to_Cache:
                         Title = f"{self.Plugin_Name} | {Query}"
-                        Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response, Title, self.The_File_Extension)
-
-                        if Output_file:
+                        if Output_file := General.Create_Query_Results_Output_File(
+                            Directory,
+                            Query,
+                            self.Plugin_Name,
+                            Response,
+                            Title,
+                            self.The_File_Extension,
+                        ):
                             Output_Connections.Output([Output_file], URL, Title, self.Plugin_Name.lower())
                             Data_to_Cache.append(URL)
 

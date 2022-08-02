@@ -15,9 +15,9 @@ class Plugin_Search:
 
     def Load_Configuration(self):
         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Loading configuration data.")
-        Result = Common.Configuration(Input=True).Load_Configuration(Object=self.Plugin_Name.lower(), Details_to_Load=["api_key"])
-
-        if Result:
+        if Result := Common.Configuration(Input=True).Load_Configuration(
+            Object=self.Plugin_Name.lower(), Details_to_Load=["api_key"]
+        ):
             return Result
 
         else:
@@ -44,8 +44,15 @@ class Plugin_Search:
                 JSON_Object = Common.JSON_Handler(IX_Response)
                 JSON_Response = JSON_Object.To_JSON_Loads()
                 JSON_Output_Response = JSON_Object.Dump_JSON()
-                Main_File_1 = General.Main_File_Create(Directory, self.Plugin_Name, JSON_Output_Response, Query + "-Request-1", self.The_File_Extensions["Main"])
-                
+                Main_File_1 = General.Main_File_Create(
+                    Directory,
+                    self.Plugin_Name,
+                    JSON_Output_Response,
+                    f"{Query}-Request-1",
+                    self.The_File_Extensions["Main"],
+                )
+
+                            
 
                 if "id" in JSON_Response:
                     Search_ID = JSON_Response["id"]
@@ -53,7 +60,14 @@ class Plugin_Search:
                     JSON_Object = Common.JSON_Handler(IX_Response)
                     JSON_Response = JSON_Object.To_JSON_Loads()
                     JSON_Output_Response = JSON_Object.Dump_JSON()
-                    Main_File_2 = General.Main_File_Create(Directory, self.Plugin_Name, JSON_Output_Response, Query + "-Request-2", self.The_File_Extensions["Main"])
+                    Main_File_2 = General.Main_File_Create(
+                        Directory,
+                        self.Plugin_Name,
+                        JSON_Output_Response,
+                        f"{Query}-Request-2",
+                        self.The_File_Extensions["Main"],
+                    )
+
                     Output_Connections = General.Connections(Query, self.Plugin_Name, self.Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
 
                     if "records" in JSON_Response:
@@ -64,7 +78,7 @@ class Plugin_Search:
                                 IX_URL = f"https://{self.Domain}/?did=" + IX_Item['systemid']
 
                                 if IX_Item["name"] != "":
-                                    Title = f"IntelligenceX Data Leak | " + IX_Item["name"]
+                                    Title = "IntelligenceX Data Leak | " + IX_Item["name"]
 
                                 else:
                                     Title = "IntelligenceX Data Leak | Untitled Document"
@@ -72,9 +86,14 @@ class Plugin_Search:
                                 if IX_URL not in Cached_Data and IX_URL not in Data_to_Cache:
                                     IX_Item_Responses = Common.Request_Handler(IX_URL, Filter=True, Host=f"https://{self.Domain}")
                                     IX_Item_Response = IX_Item_Responses["Filtered"]
-                                    Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, IX_Item_Response, IX_URL, self.The_File_Extensions["Query"])
-
-                                    if Output_file:
+                                    if Output_file := General.Create_Query_Results_Output_File(
+                                        Directory,
+                                        Query,
+                                        self.Plugin_Name,
+                                        IX_Item_Response,
+                                        IX_URL,
+                                        self.The_File_Extensions["Query"],
+                                    ):
                                         Output_Connections.Output([Main_File_1, Main_File_2, Output_file], IX_URL, Title, self.Plugin_Name.lower())
                                         Data_to_Cache.append(IX_URL)
 

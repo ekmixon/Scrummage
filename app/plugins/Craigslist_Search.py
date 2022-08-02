@@ -15,9 +15,9 @@ class Plugin_Search:
 
     def Load_Configuration(self):
         logging.info(f"{Common.Date()} - {self.Logging_Plugin_Name} - Loading configuration data.")
-        Result = Common.Configuration(Input=True).Load_Configuration(Object=self.Plugin_Name.lower(), Details_to_Load=["city"])
-
-        if Result:
+        if Result := Common.Configuration(Input=True).Load_Configuration(
+            Object=self.Plugin_Name.lower(), Details_to_Load=["city"]
+        ):
             return Result
 
         else:
@@ -58,9 +58,14 @@ class Plugin_Search:
                         Filename = Filename.replace(".html/", "")
                         Filename = Filename.replace(".html", "")
                         Filename = Filename.replace("/", "-")
-                        Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Craigslist_Response, Filename, self.The_File_Extension)
-
-                        if Output_file:
+                        if Output_file := General.Create_Query_Results_Output_File(
+                            Directory,
+                            Query,
+                            self.Plugin_Name,
+                            Craigslist_Response,
+                            Filename,
+                            self.The_File_Extension,
+                        ):
                             Output_Connections = General.Connections(Query, self.Plugin_Name, Local_Domain, self.Result_Type, self.Task_ID, self.Plugin_Name.lower())
                             Output_Connections.Output([Output_file], Item_URL, General.Get_Title(Item_URL), self.Plugin_Name.lower())
                             Data_to_Cache.append(Item_URL)

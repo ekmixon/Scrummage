@@ -29,7 +29,7 @@ class Plugin_Search:
             Cached_Data = Cached_Data_Object.Get_Cache()
 
             for Query in self.Query_List:
-                
+
                 if Common.Regex_Handler(Query, Type="Email"):
                     Gravatar_Signature = hashlib.md5(Query.encode()).hexdigest()
                     Gravatar_URL = f"https://s.{self.Domain}/avatar/{Gravatar_Signature}?s=80"
@@ -43,9 +43,14 @@ class Plugin_Search:
                         Avatar = Image.open(io.BytesIO(self.Default_Avatar))
 
                         if ImageChops.difference(Avatar, Resp_Image).getbbox():
-                            Output_file = General.Create_Query_Results_Output_File(Directory, Query, self.Plugin_Name, Response_Bytes, Gravatar_URL, self.The_File_Extension)
-
-                            if Output_file:
+                            if Output_file := General.Create_Query_Results_Output_File(
+                                Directory,
+                                Query,
+                                self.Plugin_Name,
+                                Response_Bytes,
+                                Gravatar_URL,
+                                self.The_File_Extension,
+                            ):
                                 Output_Connections.Output([Output_file], Gravatar_URL, Title, self.Plugin_Name.lower())
                                 Data_to_Cache.append(Gravatar_URL)
 
